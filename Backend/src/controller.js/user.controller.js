@@ -28,10 +28,6 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Name, email, and password are required" });
     }
 
-    if (!/^\+\d{10,15}$/.test(phone)) {
-      return res.status(400).json({ message: "Invalid phone number format. Use country code (e.g., +1234567890)" });
-    }
-
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: 'User already exists' });
 

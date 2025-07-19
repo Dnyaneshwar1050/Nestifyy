@@ -75,13 +75,6 @@ const RegisterPage = () => {
       trackInteraction('validation_error', 'register_invalid_email');
       return;
     }
-    if (formData.phone && !/^\+\d{10,15}$/.test(formData.phone)) {
-    setError("Please enter a valid phone number with country code (e.g., +1234567890).");
-    setIsSubmitting(false);
-    trackInteraction('validation_error', 'register_invalid_phone');
-    return;
-  }
-
     try {
       const data = new FormData();
       for (const key in formData) {
