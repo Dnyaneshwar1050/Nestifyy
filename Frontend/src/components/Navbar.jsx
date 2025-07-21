@@ -2,28 +2,24 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Home, Map, ChevronDown, Menu, X, User, LogOut, ShieldCheck } from 'lucide-react';
-import { AppContext } from '../context/AppContext';// Import AppContext
+import { AppContext } from '../context/AppContext';
 
 const Navbar = () => {
-  const { isAuthenticated, isAdmin, trackInteraction, handleLogout } = useContext(AppContext);
+  const { isAuthenticated, isAdmin, userRole, trackInteraction, handleLogout } = useContext(AppContext);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
   const [selectedCity, setSelectedCity] = useState('Pune');
   const cityDropdownRef = useRef(null);
-  const mobileMenuRef = useRef(null); 
+  const mobileMenuRef = useRef(null);
   const navigate = useNavigate();
 
-  // Cities for the dropdown
   const cities = ['Pune', 'Mumbai', 'Bengaluru', 'Delhi', 'Chennai', 'Hyderabad', 'Kolkata', 'Ahmedabad'];
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Close city dropdown if click outside
       if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target)) {
         setIsCityDropdownOpen(false);
       }
-      // Close mobile menu if click outside (and it's open)
-      // Ensure the click isn't on the menu button itself
       if (mobileMenuRef.current && isMobileMenuOpen && !mobileMenuRef.current.contains(event.target) && !event.target.closest('.mobile-menu-button')) {
         setIsMobileMenuOpen(false);
       }
@@ -32,18 +28,16 @@ const Navbar = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMobileMenuOpen]); // Depend on isMobileMenuOpen to re-attach listener if state changes
+  }, [isMobileMenuOpen]);
 
   return (
     <nav className="bg-white shadow-lg py-4 px-6 md:px-12 flex justify-between items-center relative z-50">
-      {/* Logo */}
       <Link to="/" className="text-2xl font-extrabold flex items-center gap-2 text-blue-700 transition-colors duration-300 hover:text-blue-800"
         onClick={() => trackInteraction('click', 'logo')}>
         <Home className="text-blue-600" size={28} strokeWidth={2.5} />
         <span className="text-gray-900">Nestify</span>
       </Link>
 
-      {/* Mobile menu button */}
       <div className="md:hidden">
         <button
           onClick={() => {
@@ -57,9 +51,7 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Desktop Navigation */}
       <div className="hidden md:flex items-center space-x-8">
-        {/* City Selector Dropdown */}
         <div className="relative" ref={cityDropdownRef}>
           <button
             className="flex items-center px-4 py-2 rounded-full border border-gray-200 bg-gray-50 text-gray-900 text-sm font-medium shadow-sm transition-all duration-200 cursor-pointer hover:bg-blue-100 hover:shadow-md"
@@ -96,7 +88,9 @@ const Navbar = () => {
         <NavLink to="/find-room" className={({ isActive }) => `font-medium text-base py-2 px-3 rounded-lg transition-colors duration-200 ${isActive ? 'text-blue-700 bg-blue-50 shadow-sm' : 'text-gray-700 hover:text-blue-700 hover:bg-gray-50'}`} onClick={() => trackInteraction('click', 'nav_find_room')}>Find Room</NavLink>
         <NavLink to="/find-roommate" className={({ isActive }) => `font-medium text-base py-2 px-3 rounded-lg transition-colors duration-200 ${isActive ? 'text-blue-700 bg-blue-50 shadow-sm' : 'text-gray-700 hover:text-blue-700 hover:bg-gray-50'}`} onClick={() => trackInteraction('click', 'nav_find_roommate')}>Find Roommate</NavLink>
         <NavLink to="/list-property" className={({ isActive }) => `font-medium text-base py-2 px-3 rounded-lg transition-colors duration-200 ${isActive ? 'text-blue-700 bg-blue-50 shadow-sm' : 'text-gray-700 hover:text-blue-700 hover:bg-gray-50'}`} onClick={() => trackInteraction('click', 'nav_list_property')}>List Property</NavLink>
-        <NavLink to="/broker-zone" className={({ isActive }) => `font-medium text-base py-2 px-3 rounded-lg transition-colors duration-200 ${isActive ? 'text-blue-700 bg-blue-50 shadow-sm' : 'text-gray-700 hover:text-blue-700 hover:bg-gray-50'}`} onClick={() => trackInteraction('click', 'nav_broker_zone')}>Broker Zone</NavLink>
+        {userRole === 'broker' && (
+          <NavLink to="/broker-zone" className={({ isActive }) => `font-medium text-base py-2 px-3 rounded-lg transition-colors duration-200 ${isActive ? 'text-blue-700 bg-blue-50 shadow-sm' : 'text-gray-700 hover:text-blue-700 hover:bg-gray-50'}`} onClick={() => trackInteraction('click', 'nav_broker_zone')}>Broker Zone</NavLink>
+        )}
         <NavLink to="/support" className={({ isActive }) => `font-medium text-base py-2 px-3 rounded-lg transition-colors duration-200 ${isActive ? 'text-blue-700 bg-blue-50 shadow-sm' : 'text-gray-700 hover:text-blue-700 hover:bg-gray-50'}`} onClick={() => trackInteraction('click', 'nav_support')}>Support</NavLink>
 
         {isAuthenticated ? (
@@ -115,7 +109,6 @@ const Navbar = () => {
             <button
               onClick={() => {
                 handleLogout();
-                // trackInteraction('click', 'logout_button');
                 navigate("/login");
               }}
               className="flex items-center gap-1 px-4 py-2 rounded-full bg-red-600 text-white transition-all duration-300 text-sm font-medium shadow-md hover:bg-red-700 hover:shadow-lg"
@@ -134,10 +127,8 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* Mobile Menu (Drawer) */}
       {isMobileMenuOpen && (
         <div ref={mobileMenuRef} className="absolute top-[72px] left-0 w-full bg-white shadow-xl py-6 px-4 border-t border-gray-200 z-40 overflow-y-auto max-h-[calc(100vh-72px)] md:hidden animate-slide-in-down">
-          {/* City Selector in Mobile Menu */}
           <div className="relative mb-6">
             <button
               className="flex items-center justify-between w-full px-4 py-3 rounded-lg bg-gray-50 text-gray-900 text-base font-medium shadow-sm transition-colors duration-200"
@@ -161,7 +152,7 @@ const Navbar = () => {
                     onClick={() => {
                       setSelectedCity(city);
                       setIsCityDropdownOpen(false);
-                      setIsMobileMenuOpen(false); // Close mobile menu on city selection
+                      setIsMobileMenuOpen(false);
                       trackInteraction('click', `mobile_city_select_${city}`);
                     }}
                   >
@@ -176,12 +167,16 @@ const Navbar = () => {
             <NavLink to="/find-room" onClick={() => { setIsMobileMenuOpen(false); trackInteraction('click', 'mobile_nav_find_room'); }} className={({ isActive }) => `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${isActive ? 'text-blue-700 bg-blue-50 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-700'}`}>Find Room</NavLink>
             <NavLink to="/find-roommate" onClick={() => { setIsMobileMenuOpen(false); trackInteraction('click', 'mobile_nav_find_roommate'); }} className={({ isActive }) => `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${isActive ? 'text-blue-700 bg-blue-50 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-700'}`}>Find Roommate</NavLink>
             <NavLink to="/list-property" onClick={() => { setIsMobileMenuOpen(false); trackInteraction('click', 'mobile_nav_list_property'); }} className={({ isActive }) => `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${isActive ? 'text-blue-700 bg-blue-50 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-700'}`}>List Property</NavLink>
-            <NavLink to="/broker-zone" onClick={() => { setIsMobileMenuOpen(false); trackInteraction('click', 'mobile_nav_broker_zone'); }} className={({ isActive }) => `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${isActive ? 'text-blue-700 bg-blue-50 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-700'}`}>Broker Zone</NavLink>
+            {userRole === 'broker' && (
+              <NavLink to="/broker-zone" onClick={() => { setIsMobileMenuOpen(false); trackInteraction('click', 'mobile_nav_broker_zone'); }} className={({ isActive }) => `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${isActive ? 'text-blue-700 bg-blue-50 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-700'}`}>Broker Zone</NavLink>
+            )}
             <NavLink to="/support" onClick={() => { setIsMobileMenuOpen(false); trackInteraction('click', 'mobile_nav_support'); }} className={({ isActive }) => `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${isActive ? 'text-blue-700 bg-blue-50 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-700'}`}>Support</NavLink>
 
             {isAuthenticated ? (
               <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col space-y-2">
-                <NavLink to="/dashboard" onClick={() => { setIsMobileMenuOpen(false); trackInteraction('click', 'mobile_nav_dashboard'); }} className={({ isActive }) => `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${isActive ? 'text-blue-700 bg-blue-50 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-700'}`}>Dashboard</NavLink>
+                {userRole === 'user' && (
+              <NavLink to="/dashboard" onClick={() => { setIsMobileMenuOpen(false); trackInteraction('click', 'mobile_nav_dashboard'); }} className={({ isActive }) => `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${isActive ? 'text-blue-700 bg-blue-50 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-700'}`}>Dashboard</NavLink>
+            )}
                 {isAdmin && (
                   <NavLink to="/admin-panel" onClick={() => { setIsMobileMenuOpen(false); trackInteraction('click', 'mobile_nav_admin_panel'); }} className={({ isActive }) => `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${isActive ? 'text-blue-700 bg-blue-50 font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-700'}`}>Admin</NavLink>
                 )}
@@ -190,7 +185,7 @@ const Navbar = () => {
                     setIsMobileMenuOpen(false);
                     handleLogout();
                     trackInteraction('click', 'mobile_logout_button');
-                    navigate("/profile");
+                    navigate("/login");
                   }}
                   className="block w-full text-left py-3 px-4 rounded-lg text-red-600 transition-colors duration-200 text-base font-medium hover:bg-red-100 hover:text-red-700"
                 >
@@ -207,7 +202,6 @@ const Navbar = () => {
           </div>
         </div>
       )}
-      {/* Removed the style tag as all styles are now Tailwind classes */}
     </nav>
   );
 };

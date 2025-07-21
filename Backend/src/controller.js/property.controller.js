@@ -368,6 +368,32 @@ const searchProperties = async (req, res) => {
     });
   }
 };
+const getMyProperties = async (req, res) => {
+  try {
+    const ownerId = req.user?._id || req.user?.id;
+    if (!ownerId) {
+      return res.status(401).json({ message: "Unauthorized: No user ID found" });
+    }
+
+    const properties = await Property.find({ owner: ownerId })
+      .populate("owner", "name email phone")
+      .lean();
+
+    const sanitizedProperties = properties.map((property) => ({
+      ...property,
+      imageUrls: Array.isArray(property.imageUrls) ? property.imageUrls : [],
+      owner: property.owner || { name: "Unknown", email: "Unknown", phone: "" },
+    }));
+
+    res.status(200).json({ properties: sanitizedProperties });
+  } catch (error) {
+    console.error("Error fetching my properties:", error);
+    res.status(500).json({
+      message: "Failed to fetch properties",
+      error: error.message,
+    });
+  }
+};
 
 export {
   createproperty,
@@ -376,4 +402,5 @@ export {
   getAllProperties,
   getPropertyById,
   searchProperties,
+  getMyProperties
 };

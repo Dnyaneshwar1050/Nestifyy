@@ -297,7 +297,7 @@ const PropertyDetailPage = () => {
                   <span className="font-semibold">BHK Type:</span> <span className="ml-2">{property.bhkType}</span>
                 </div>
               )}
-              <div className="flex items-center text-gray-800 text-lg">
+              {/* <div className="flex items-center text-gray-800 text-lg">
                 <input
                   type="checkbox"
                   checked={property.allowBroker}
@@ -305,7 +305,7 @@ const PropertyDetailPage = () => {
                   className="mr-3 h-5 w-5 text-blue-600 rounded focus:ring-blue-500"
                 />
                 <span className="font-semibold">Broker Allowed:</span> <span className="ml-2">{property.allowBroker ? 'Yes' : 'No'}</span>
-              </div>
+              </div> */}
             </div>
 
             {property.description && (

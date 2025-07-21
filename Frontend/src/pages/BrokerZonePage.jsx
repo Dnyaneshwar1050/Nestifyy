@@ -1,35 +1,32 @@
 // src/pages/BrokerZonePage.jsx
 import React, { useEffect, useContext, useState } from 'react';
 import { AppContext } from '../context/AppContext';
-import { TrendingUp, Briefcase, PlusCircle, Home, Users, CheckCircle, AlertCircle, XCircle, Loader2, Eye, Trash2, Edit, PhoneCall, Mail } from 'lucide-react';
+import { TrendingUp, Briefcase, PlusCircle, Home, CheckCircle, AlertCircle, Loader2, Eye, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const BrokerZonePage = () => {
   const { trackInteraction, isAuthenticated } = useContext(AppContext);
   const navigate = useNavigate();
-  const [subscriptionStatus, setSubscriptionStatus] = useState('inactive'); // 'active', 'inactive', 'trial'
+  const [subscriptionStatus, setSubscriptionStatus] = useState('inactive');
   const [leads, setLeads] = useState([]);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  // State for custom confirmation modal
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [propertyToRemoveId, setPropertyToRemoveId] = useState(null);
 
   useEffect(() => {
     trackInteraction('page_view', 'broker_zone_page');
-    const storedRole = localStorage.getItem('userRole'); // Assuming 'broker' role is set on login
+    const storedRole = localStorage.getItem('userRole');
     if (!isAuthenticated || storedRole !== 'broker') {
       setError("Please log in as a broker to access this zone.");
       setLoading(false);
       trackInteraction('auth_error', 'broker_zone_unauthenticated');
-      // Delay navigation slightly to allow error message to be seen
       setTimeout(() => navigate('/login'), 2000);
       return;
     }
-    // Simulate fetching broker data
     fetchBrokerData();
   }, [trackInteraction, isAuthenticated, navigate]);
 
@@ -37,26 +34,33 @@ const BrokerZonePage = () => {
     setLoading(true);
     setError('');
     try {
-      // Simulate API call to get broker's subscription, leads, and properties
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
 
-      // Dummy data
-      setSubscriptionStatus('active'); // or 'inactive', 'trial'
-      setLeads([
-        { id: 1, name: 'John Doe', contact: 'john.doe@example.com', interestedIn: '2BHK Apartment, Pune', status: 'New' },
-        { id: 2, name: 'Jane Smith', contact: '+919876543210', interestedIn: 'Shared Room, Bengaluru', status: 'Contacted' },
-        { id: 3, name: 'Ravi Kumar', contact: 'ravi.k@example.com', interestedIn: '1BHK Flat, Delhi', status: 'New' },
-        { id: 4, name: 'Priya Sharma', contact: '+919988776655', interestedIn: 'Villa, Chennai', status: 'Contacted' },
-      ]);
-      setProperties([
-        { id: 101, name: 'Luxury 3BHK Flat', location: 'Koregaon Park', status: 'Active', imageUrl: 'https://placehold.co/100x70/E0E7FF/4338CA?text=Prop1' },
-        { id: 102, name: 'Commercial Office Space', location: 'Baner', status: 'Pending Review', imageUrl: 'https://placehold.co/100x70/D1FAE5/065F46?text=Prop2' },
-        { id: 103, name: 'Spacious 2BHK', location: 'Hinjewadi', status: 'Active', imageUrl: 'https://placehold.co/100x70/BFDBFE/1D4ED8?text=Prop3' },
-      ]);
+      // Fetch subscription status
+      const subscriptionResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/subscription/status', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSubscriptionStatus(subscriptionResponse.data.status || 'inactive');
+
+      // Fetch leads
+      const leadsResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/room-request/leads', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLeads(leadsResponse.data.leads || []);
+
+      // Fetch properties
+      const propertiesResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/property/my-properties', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProperties(propertiesResponse.data.properties || []);
+
       setLoading(false);
       trackInteraction('data_fetch', 'broker_data_success');
     } catch (err) {
-      setError('Failed to load broker data.');
+      setError(err.response?.data?.message || 'Failed to load broker data.');
       setLoading(false);
       trackInteraction('data_fetch', 'broker_data_failure', { error: err.message });
     }
@@ -68,13 +72,17 @@ const BrokerZonePage = () => {
     setError('');
     trackInteraction('click', 'broker_purchase_subscription', { plan });
     try {
-      // Simulate API call to purchase subscription
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        'https://nestifyy-my3u.onrender.com/api/subscription/purchase',
+        { plan },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setSubscriptionStatus('active');
       setSuccess(`Successfully subscribed to ${plan} plan!`);
       trackInteraction('subscription', 'broker_subscription_success', { plan });
     } catch (err) {
-      setError('Failed to purchase subscription. Please try again.');
+      setError(err.response?.data?.message || 'Failed to purchase subscription. Please try again.');
       trackInteraction('subscription', 'broker_subscription_failure', { error: err.message });
     } finally {
       setLoading(false);
@@ -88,49 +96,45 @@ const BrokerZonePage = () => {
 
   const handleViewProperty = (propertyId) => {
     trackInteraction('click', `broker_view_property_${propertyId}`);
-    // Navigate to property detail page or open a modal
-    console.log(`Viewing property ${propertyId}`);
-    // Example: navigate(`/property/${propertyId}`);
+    navigate(`/property/${propertyId}`);
   };
 
-  // Function to open the custom confirmation modal
   const confirmRemoveProperty = (propertyId) => {
     setPropertyToRemoveId(propertyId);
     setShowConfirmModal(true);
     trackInteraction('click', `broker_remove_property_initiate_${propertyId}`);
   };
 
-  // Function to handle removal after confirmation
   const executeRemoveProperty = async () => {
-    setShowConfirmModal(false); // Close modal
-    if (!propertyToRemoveId) return; // Should not happen if modal was opened correctly
+    setShowConfirmModal(false);
+    if (!propertyToRemoveId) return;
 
     setLoading(true);
     setSuccess('');
     setError('');
     trackInteraction('click', `broker_remove_property_confirm_${propertyToRemoveId}`);
     try {
-      // Simulate API call to remove property
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setProperties(prev => prev.filter(p => p.id !== propertyToRemoveId));
+      const token = localStorage.getItem('token');
+      await axios.delete(`https://nestifyy-my3u.onrender.com/api/property/${propertyToRemoveId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProperties((prev) => prev.filter((p) => p._id !== propertyToRemoveId));
       setSuccess('Property removed successfully!');
       trackInteraction('property_management', 'broker_property_remove_success', { propertyId: propertyToRemoveId });
     } catch (err) {
-      setError('Failed to remove property.');
+      setError(err.response?.data?.message || 'Failed to remove property.');
       trackInteraction('property_management', 'broker_property_remove_failure', { propertyId: propertyToRemoveId, error: err.message });
     } finally {
       setLoading(false);
-      setPropertyToRemoveId(null); // Reset ID
+      setPropertyToRemoveId(null);
     }
   };
 
-  // Function to cancel removal
   const cancelRemoveProperty = () => {
     setShowConfirmModal(false);
     setPropertyToRemoveId(null);
     trackInteraction('click', `broker_remove_property_cancel_${propertyToRemoveId}`);
   };
-
 
   if (loading && !error && !success) {
     return (
@@ -143,7 +147,7 @@ const BrokerZonePage = () => {
     );
   }
 
-  if (error && !isAuthenticated) { // Only show full error page if not authenticated
+  if (error && !isAuthenticated) {
     return (
       <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gray-50 p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md mx-4 border border-red-200 text-center animate-fade-in-up">
@@ -181,7 +185,7 @@ const BrokerZonePage = () => {
           <span className="block sm:inline font-medium">{success}</span>
         </div>
       )}
-      {error && isAuthenticated && ( // Show error message if authenticated but data fetch failed
+      {error && isAuthenticated && (
         <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded-lg relative mb-6 flex items-center gap-2 text-base w-full max-w-6xl box-border animate-fade-in" role="alert">
           <AlertCircle size={20} />
           <span className="block sm:inline font-medium">{error}</span>
@@ -191,7 +195,7 @@ const BrokerZonePage = () => {
       {/* Subscription Section */}
       <section className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-6xl mb-8 border border-gray-200 box-border md:p-8 animate-fade-in-up delay-100">
         <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3">
-
+          <Briefcase size={28} className="text-blue-600" />
           <span>Subscription Status</span>
         </h2>
         <div className="flex flex-col items-start justify-between mb-4 gap-3 sm:flex-row sm:items-center sm:gap-0">
@@ -241,7 +245,7 @@ const BrokerZonePage = () => {
               </thead>
               <tbody>
                 {leads.map(lead => (
-                  <tr key={lead.id} className="border-b border-gray-200 transition-colors duration-150 last:border-b-0 hover:bg-gray-50">
+                  <tr key={lead._id} className="border-b border-gray-200 transition-colors duration-150 last:border-b-0 hover:bg-gray-50">
                     <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap">{lead.name}</td>
                     <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap">{lead.contact}</td>
                     <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap">{lead.interestedIn}</td>
@@ -255,7 +259,7 @@ const BrokerZonePage = () => {
                     <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap">
                       <button
                         className="text-blue-600 transition-colors duration-200 text-sm font-medium inline-flex items-center gap-1 bg-none border-none cursor-pointer p-1 rounded hover:text-blue-700 hover:bg-blue-50"
-                        onClick={() => trackInteraction('click', `broker_contact_lead_${lead.id}`)}
+                        onClick={() => trackInteraction('click', `broker_contact_lead_${lead._id}`)}
                       >
                         <PhoneCall size={16} /><span>Contact</span>
                       </button>
@@ -291,7 +295,7 @@ const BrokerZonePage = () => {
               <thead className="bg-gray-100">
                 <tr>
                   <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Image</th>
-                  <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Name</th>
+                  <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Title</th>
                   <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Location</th>
                   <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Status</th>
                   <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Actions</th>
@@ -299,29 +303,27 @@ const BrokerZonePage = () => {
               </thead>
               <tbody>
                 {properties.map(property => (
-                  <tr key={property.id} className="border-b border-gray-200 transition-colors duration-150 last:border-b-0 hover:bg-gray-50">
+                  <tr key={property._id} className="border-b border-gray-200 transition-colors duration-150 last:border-b-0 hover:bg-gray-50">
                     <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap">
-                      <img src={property.imageUrl} alt={property.name} className="w-20 h-14 object-cover rounded-md shadow-sm" />
+                      <img src={property.imageUrls[0] || 'https://placehold.co/100x70/E0E7FF/4338CA?text=Prop'} alt={property.title} className="w-20 h-14 object-cover rounded-md shadow-sm" />
                     </td>
-                    <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap">{property.name}</td>
+                    <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap">{property.title}</td>
                     <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap">{property.location}</td>
                     <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold inline-block ${
-                        property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {property.status}
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold inline-block ${property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                        {property.status || 'Active'}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap flex gap-3 flex-wrap">
                       <button
                         className="text-blue-600 transition-colors duration-200 text-sm font-medium inline-flex items-center gap-1 bg-none border-none cursor-pointer p-1 rounded hover:text-blue-700 hover:bg-blue-50"
-                        onClick={() => handleViewProperty(property.id)}
+                        onClick={() => handleViewProperty(property._id)}
                       >
                         <Eye size={16} /><span>View</span>
                       </button>
                       <button
                         className="text-red-600 transition-colors duration-200 text-sm font-medium inline-flex items-center gap-1 bg-none border-none cursor-pointer p-1 rounded hover:text-red-800 hover:bg-red-100"
-                        onClick={() => confirmRemoveProperty(property.id)} // Use custom confirm
+                        onClick={() => confirmRemoveProperty(property._id)}
                       >
                         <Trash2 size={16} /><span>Remove</span>
                       </button>
@@ -334,7 +336,6 @@ const BrokerZonePage = () => {
         )}
       </section>
 
-      {/* Custom Confirmation Modal */}
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-11/12 text-center relative animate-fade-in-up">

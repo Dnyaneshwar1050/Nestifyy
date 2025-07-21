@@ -8,6 +8,7 @@ export const AppContextProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
+  const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || '');
 
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export const AppContextProvider = ({ children }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userRole');
     setIsAuthenticated(false);
     setUserId(null);
     navigate("/login"); 
@@ -43,6 +45,7 @@ export const AppContextProvider = ({ children }) => {
 
   const handleLogin = (token, user) => {
     localStorage.setItem('token', token);
+    localStorage.setItem('userRole', user.role);
     setIsAuthenticated(true);
     setUserId(user?.id || user?._id || null);
   };

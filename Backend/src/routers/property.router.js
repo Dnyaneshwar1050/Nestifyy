@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createproperty, updateProperty, deleteProperty, getPropertyById, getAllProperties, searchProperties } from "../controller.js/property.controller.js";
+import { createproperty, updateProperty, deleteProperty, getPropertyById, getAllProperties, searchProperties, getMyProperties } from "../controller.js/property.controller.js";
 import authMiddleware from "../middlewares/auth.js"; 
 import upload from "../middlewares/multer.middleware.js";
 
@@ -12,5 +12,6 @@ router.delete('/:id', authMiddleware, deleteProperty);
 router.get('/all', getAllProperties);
 router.get('/:id', getPropertyById);
 router.get('/search', searchProperties);
+router.get('/my-properties', authMiddleware, getMyProperties);
 
 export default router;

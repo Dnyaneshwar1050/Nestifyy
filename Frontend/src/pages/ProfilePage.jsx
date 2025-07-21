@@ -168,74 +168,79 @@ const ProfilePage = () => {
 
   // Save profile changes
   const handleSave = async () => {
-    setSaveLoading(true);
-    setError("");
-    setSuccess("");
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
-      const formData = new FormData();
-      Object.keys(editForm).forEach((key) => {
-        if (editForm[key] !== null && editForm[key] !== undefined) {
-          if (key === "brokerInfo" || key === "preferences") {
-            formData.append(key, JSON.stringify(editForm[key]));
-          } else if (key !== "photo") {
-            formData.append(key, editForm[key]);
-          }
-        }
-      });
-      if (selectedFile) {
-        formData.append("photo", selectedFile);
-      }
-
-      const response = await axios.put(
-        `https://nestifyy-my3u.onrender.com/api/user/profile`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data", // Fixed typo
-          },
-        }
-      );
-
-      setUser(response.data.user);
-      setEditForm(response.data.user);
-      setIsEditing(false);
-      setSuccess("Profile updated successfully!");
-      trackInteraction("profile_management", "profile_update_success");
-      if (previewUrl && selectedFile) {
-        URL.revokeObjectURL(previewUrl); // Revoke only if a new file was selected
-      }
-      setPreviewUrl(
-        response.data.user.photo
-          ? response.data.user.photo.startsWith("http")
-            ? response.data.user.photo
-            : `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
-          : ""
-      );
-      setSelectedFile(null);
-    } catch (err) {
-      console.error("Profile update error:", err);
-      const errorMessage =
-        err.response?.data?.message ||
-        err.message ||
-        "Failed to update profile";
-      setError(errorMessage);
-      trackInteraction("profile_management", "profile_update_failure", {
-        error: errorMessage,
-      });
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        navigate("/login");
-      }
-    } finally {
-      setSaveLoading(false);
+  setSaveLoading(true);
+  setError("");
+  setSuccess("");
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
     }
-  };
+
+    const formData = new FormData();
+    Object.keys(editForm).forEach((key) => {
+      if (editForm[key] !== null && editForm[key] !== undefined) {
+        if (key === "brokerInfo" || key === "preferences") {
+          formData.append(key, JSON.stringify(editForm[key]));
+        } else if (key !== "photo") {
+          formData.append(key, editForm[key]);
+        }
+      }
+    });
+    if (selectedFile) {
+      formData.append("photo", selectedFile);
+    }
+
+    // Log FormData contents for debugging
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+
+    const response = await axios.put(
+      `https://nestifyy-my3u.onrender.com/api/user/profile`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    setUser(response.data.user);
+    setEditForm(response.data.user);
+    setIsEditing(false);
+    setSuccess("Profile updated successfully!");
+    trackInteraction("profile_management", "profile_update_success");
+    if (previewUrl && selectedFile) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(
+      response.data.user.photo
+        ? response.data.user.photo.startsWith("http")
+          ? response.data.user.photo
+          : `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
+        : ""
+    );
+    setSelectedFile(null);
+  } catch (err) {
+    console.error("Profile update error:", err);
+    setError(
+      err.response?.data?.message || err.message || "Failed to update profile"
+    );
+    trackInteraction("profile_management", "profile_update_failure", {
+      error: err.response?.data?.message || err.message,
+    });
+    if (err.response?.status === 401) {
+      localStorage.removeItem("token");
+      navigate("/login");
+    }
+  } finally {
+    setSaveLoading(false);
+  }
+};
+
+
   // Handle room request submission
   const handleRoomRequestSubmit = async () => {
     setRequestLoading(true);

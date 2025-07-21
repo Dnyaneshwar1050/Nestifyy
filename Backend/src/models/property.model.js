@@ -90,6 +90,10 @@ const propertySchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    status: {
+      type: String,
+      default: "Active"
+    }
   },
   { timestamps: true }
 );
