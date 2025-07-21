@@ -128,13 +128,13 @@ const PropertyListingCard = ({ property }) => {
         <p className="text-gray-600 flex items-center mb-3 text-sm">
           <MapPin size={16} className="mr-1 text-blue-500" /> {property.location || 'Unknown Location'}
         </p>
-        <p className="text-2xl font-bold text-blue-600 mb-4">{property.rents || 'N/A'}</p>
+        <p className="text-2xl font-bold text-blue-600 mb-4">{property.rent || 'N/A'}</p>
         <div className="flex justify-between text-gray-700 text-sm border-t border-gray-200 pt-4 mt-auto">
           <div className="flex items-center">
             <Bed size={16} className="mr-1 text-gray-500" /> {property.noOfBedroom ?? 'N/A'} Beds
           </div>
           <div className="flex items-center">
-            <Bath size={16} className="mr-1 text-gray-500" /> {property.noOfBath ?? 'N/A'} Baths
+            <Bath size={16} className="mr-1 text-gray-500" /> {property.bathrooms ?? 'N/A'} Baths
           </div>
           <div className="flex items-center">
             <Home size={16} className="mr-1 text-gray-500" /> {property.area || 'N/A'}

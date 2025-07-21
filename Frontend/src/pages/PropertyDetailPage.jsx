@@ -188,14 +188,14 @@ const PropertyDetailPage = () => {
           </h1>
           <p className="text-gray-600 flex items-center text-base sm:text-lg font-medium">
             <MapPin size={24} className="mr-2 text-blue-600 flex-shrink-0" />
-            <span className="truncate">{` ${property.city}, ${property.location},`}</span>
+            <span className="truncate">{` ${property.city}`}</span>
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-4 text-xl font-bold text-gray-900">
             <span className="flex items-center text-green-700">
-              {property.price}
+              {property.rent}
             </span>
             {property.deposit && (
-              <span className="flex items-center text-yellow-700">
+              <span className="flex items-center text-orange-700">
                 Deposit: ₹{property.deposit.toLocaleString()}
               </span>
             )}
