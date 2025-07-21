@@ -1,7 +1,7 @@
 // src/pages/BrokerZonePage.jsx
 import React, { useEffect, useContext, useState } from 'react';
 import { AppContext } from '../context/AppContext';
-import { DollarSign, TrendingUp, Briefcase, PlusCircle, Home, Users, CheckCircle, AlertCircle, XCircle, Loader2, Eye, Trash2, Edit, PhoneCall, Mail } from 'lucide-react';
+import { TrendingUp, Briefcase, PlusCircle, Home, Users, CheckCircle, AlertCircle, XCircle, Loader2, Eye, Trash2, Edit, PhoneCall, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const BrokerZonePage = () => {
@@ -191,7 +191,7 @@ const BrokerZonePage = () => {
       {/* Subscription Section */}
       <section className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-6xl mb-8 border border-gray-200 box-border md:p-8 animate-fade-in-up delay-100">
         <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3">
-          <DollarSign size={28} className="text-green-600" />
+
           <span>Subscription Status</span>
         </h2>
         <div className="flex flex-col items-start justify-between mb-4 gap-3 sm:flex-row sm:items-center sm:gap-0">

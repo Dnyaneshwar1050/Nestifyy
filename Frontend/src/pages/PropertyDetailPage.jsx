@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
-import { MapPin, Bed, Bath, Home, DollarSign, Building, MessageCircle, Loader2, AlertCircle, Frown } from 'lucide-react'; // Added Frown icon for not found
+import { MapPin, Bed, Bath, Home, Building, MessageCircle, Loader2, AlertCircle, Frown } from 'lucide-react'; // Added Frown icon for not found
 
 const DEFAULT_IMAGE = "https://placehold.co/800x600/E0F7FA/00838F?text=Property+Image"; // Larger default image
 
@@ -192,12 +192,10 @@ const PropertyDetailPage = () => {
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-4 text-xl font-bold text-gray-900">
             <span className="flex items-center text-green-700">
-              <DollarSign size={28} className="mr-2" />
               {property.price}
             </span>
             {property.deposit && (
               <span className="flex items-center text-yellow-700">
-                <DollarSign size={28} className="mr-2" />
                 Deposit: ₹{property.deposit.toLocaleString()}
               </span>
             )}

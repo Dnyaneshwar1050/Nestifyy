@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { Home, MapPin, DollarSign, Bed, Bath, Camera, Upload, CheckCircle, AlertCircle, Loader2, X } from 'lucide-react';
+import { Home, MapPin, Bed, Bath, Camera, Upload, CheckCircle, AlertCircle, Loader2, X } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -308,7 +308,6 @@ const ListPropertyPage = () => {
           <div className="form-group">
             <label htmlFor="rent" className="block text-lg font-semibold text-text-gray-800 mb-2">Monthly Rent (₹) *</label>
             <div className="relative">
-              <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
               <input
                 type="number"
                 id="rent"
@@ -326,7 +325,6 @@ const ListPropertyPage = () => {
           <div className="form-group">
             <label htmlFor="deposit" className="block text-lg font-semibold text-text-gray-800 mb-2">Security Deposit (₹)</label>
             <div className="relative">
-              <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
               <input
                 type="number"
                 id="deposit"

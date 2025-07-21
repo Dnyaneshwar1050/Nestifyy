@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
-import { MapPin, Bed, Bath, Home, DollarSign, Building, MessageCircle, Loader2, AlertCircle } from 'lucide-react';
+import { MapPin, Bed, Bath, Home, Building, MessageCircle, Loader2, AlertCircle } from 'lucide-react';
 
 const DEFAULT_IMAGE = "https://placehold.co/400x250/E0F7FA/00838F?text=Property";
 
@@ -210,12 +210,10 @@ const PropertyDetailPage = () => {
             <h2 className="text-2xl font-bold text-text-gray-800 mb-4">Property Details</h2>
             <div className="space-y-4">
               <p className="flex items-center text-gray-700">
-                <DollarSign size={20} className="mr-2 text-blue-500" />
                 <span>Rent: {property.price}</span>
               </p>
               {property.deposit && (
                 <p className="flex items-center text-gray-700">
-                  <DollarSign size={20} className="mr-2 text-blue-500" />
                   <span>Deposit: ₹{property.deposit.toLocaleString()}</span>
                 </p>
               )}

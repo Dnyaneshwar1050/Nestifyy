@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { MapPin, DollarSign, User, MessageCircle } from 'lucide-react';
+import { MapPin, User, MessageCircle } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 
 const RoommateListingCard = ({ roommate }) => {
@@ -28,7 +28,7 @@ const RoommateListingCard = ({ roommate }) => {
           <User size={16} className="mr-2 text-gray-500" /> Gender: <span className="font-semibold ml-1">{roommate.gender || 'Not specified'}</span>
         </p>
         <p className="text-base text-gray-700 mb-2 flex items-center">
-          <DollarSign size={16} className="mr-2 text-gray-500" /> Budget: <span className="font-semibold ml-1">₹{roommate.budget}</span>
+        Budget: <span className="font-semibold ml-1">₹{roommate.budget}</span>
         </p>
         <button
           className="mt-6 w-full bg-green-600 text-white py-3 rounded-xl border-none cursor-pointer transition-all duration-300 text-lg font-semibold shadow-md flex items-center justify-center gap-2 hover:bg-green-700 hover:shadow-xl hover:scale-[1.01] active:scale-98"

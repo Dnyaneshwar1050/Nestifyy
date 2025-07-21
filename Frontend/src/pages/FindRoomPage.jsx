@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AppContext } from '../context/AppContext';
-import { Search, MapPin, DollarSign, Bed, Bath, Building, Loader2, Frown, AlertCircle } from 'lucide-react';
+import { Search, MapPin, Bed, Bath, Building, Loader2, Frown, AlertCircle } from 'lucide-react';
 import PropertyListingCard from '../components/PropertyListingCard';
 
 const DEFAULT_IMAGE = "https://placehold.co/400x250/E0F7FA/00838F?text=Property";
@@ -180,7 +180,6 @@ const FindRoomPage = () => {
           <div className="filter-group">
             <label htmlFor="minPrice" className="block text-sm font-semibold text-text-gray-700 mb-2">Min Price (₹)</label>
             <div className="relative">
-              <DollarSign size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-gray-400" />
               <input
                 type="number"
                 id="minPrice"
@@ -197,7 +196,6 @@ const FindRoomPage = () => {
           <div className="filter-group">
             <label htmlFor="maxPrice" className="block text-sm font-semibold text-text-gray-700 mb-2">Max Price (₹)</label>
             <div className="relative">
-              <DollarSign size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-gray-400" />
               <input
                 type="number"
                 id="maxPrice"

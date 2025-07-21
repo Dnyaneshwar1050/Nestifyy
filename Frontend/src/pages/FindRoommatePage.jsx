@@ -3,7 +3,6 @@ import {
   Search,
   MapPin,
   Users,
-  DollarSign,
   Loader2,
   Frown,
   MessageSquare,
@@ -201,10 +200,6 @@ const FindRoommatePage = () => {
             </select>
           </div>
           <div className="relative">
-            <DollarSign
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400"
-              size={20}
-            />
             <select
               name="budget"
               className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 20 20%27 fill=%27currentColor%27%3E%3Cpath fill-rule=%27evenodd%27 d=%27M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%27 clip-rule=%27evenodd%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em] focus:border-primary-green focus:ring-2 focus:ring-green-500/50"

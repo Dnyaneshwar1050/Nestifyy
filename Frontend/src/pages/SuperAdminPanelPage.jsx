@@ -1,7 +1,7 @@
 // src/pages/SuperAdminPanelPage.jsx
 import React, { useEffect, useContext, useState } from 'react';
 import { AppContext } from '../context/AppContext';
-import { ShieldCheck, Settings, DollarSign, TrendingUp, PlusCircle, Trash2, Edit, CheckCircle, AlertCircle, Loader2, Users, Home, Briefcase } from 'lucide-react';
+import { ShieldCheck, Settings, TrendingUp, PlusCircle, Trash2, Edit, CheckCircle, AlertCircle, Loader2, Users, Home, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const SuperAdminPanelPage = () => {
@@ -179,7 +179,7 @@ const SuperAdminPanelPage = () => {
               activeTab === 'subscription_plans' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100'
             }`}
           >
-            <DollarSign size={20} /> Plans
+          Plans
           </button>
           <button
             onClick={() => { setActiveTab('promotional_ads'); trackInteraction('click', 'super_admin_tab_ads'); }}
@@ -215,7 +215,6 @@ const SuperAdminPanelPage = () => {
               <p className="text-3xl font-bold text-purple-800">{platformStats.verifiedBrokers}</p>
             </div>
             <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-200 flex flex-col items-center justify-center text-center shadow-sm">
-              <DollarSign className="w-12 h-12 text-yellow-600 mb-3" />
               <p className="text-gray-600 text-lg font-medium">Revenue (Last Month)</p>
               <p className="text-3xl font-bold text-yellow-800">₹{platformStats.revenueLastMonth}</p>
             </div>
@@ -226,7 +225,6 @@ const SuperAdminPanelPage = () => {
       {activeTab === 'subscription_plans' && (
         <section className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-6xl mb-8 border border-gray-200 box-border md:p-8 animate-fade-in-up delay-200">
           <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-            <DollarSign size={28} className="text-green-600" />
             <span>Manage Subscription Plans</span>
           </h2>
           <button

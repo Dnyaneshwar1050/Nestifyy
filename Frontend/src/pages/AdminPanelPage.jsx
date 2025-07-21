@@ -1,7 +1,7 @@
 // src/pages/AdminPanelPage.jsx
 import React, { useEffect, useContext, useState } from 'react';
 import { AppContext } from '../context/AppContext';
-import { ShieldCheck, Users, Home, Briefcase, CheckCircle, AlertCircle, Trash2, Eye, Ban, Loader2, DollarSign, TrendingUp } from 'lucide-react';
+import { ShieldCheck, Users, Home, Briefcase, CheckCircle, AlertCircle, Trash2, Eye, Ban, Loader2, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AdminPanelPage = () => {
