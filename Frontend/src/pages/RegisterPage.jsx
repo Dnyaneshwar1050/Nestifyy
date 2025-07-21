@@ -13,7 +13,6 @@ const RegisterPage = () => {
     password: "",
     age: "",
     role: "",
-    profession: "",
     location: "",
     gender: "",
     phone: "",
@@ -267,7 +266,7 @@ const RegisterPage = () => {
             </select>
           </div>
 
-          <div className="col-span-1">
+          {/* <div className="col-span-1">
             <label htmlFor="profession" className="block text-gray-700 text-sm font-semibold mb-2">Profession</label>
             <div className="relative">
               <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -284,7 +283,7 @@ const RegisterPage = () => {
                 onBlur={() => setFocusedField('')}
               />
             </div>
-          </div>
+          </div> */}
 
           <div className="col-span-1">
             <label htmlFor="location" className="block text-gray-700 text-sm font-semibold mb-2">Location</label>

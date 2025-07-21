@@ -16,7 +16,6 @@ const registerUser = async (req, res) => {
       password,
       role,
       phone,
-      profession,
       gender,
       age,
       photo,
@@ -50,14 +49,13 @@ const registerUser = async (req, res) => {
       role,
       age:Number(age),
       phone,
-      profession,
       location,
       gender,
       photo:photoUrl,
     });
     await user.save();
 
-    res.status(201).json({ user: { id: user._id, name, email, photo: photoUrl, phone, age, profession, location, gender } });
+    res.status(201).json({ user: { id: user._id, name, email, photo: photoUrl, phone, age, location, gender } });
 
   } catch (error) {
     console.error('Register error:', error.message);

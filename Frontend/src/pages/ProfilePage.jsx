@@ -110,10 +110,12 @@ const ProfilePage = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (!file.type.startsWith("image/")) {
-        setError("Please select a valid image file");
+      // Validate file type
+      if (!file.type.match(/image\/(jpeg|png|gif)/)) {
+        setError("Please select a valid image file (JPEG, PNG, or GIF)");
         return;
       }
+      // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
         setError("Image size should be less than 5MB");
         return;
@@ -122,16 +124,23 @@ const ProfilePage = () => {
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
       setError("");
+      setSuccess("Photo selected successfully!");
       trackInteraction("file_select", "profile_photo_edit");
+    } else {
+      setError("No file selected");
     }
   };
-
   // Handle form input changes
   const handleInputChange = (field, value) => {
+    if (field === "location" && !value.trim()) {
+      setError("Location cannot be empty");
+      return;
+    }
     setEditForm((prev) => ({
       ...prev,
       [field]: value,
     }));
+    setError("");
   };
 
   // Handle nested field changes
@@ -181,7 +190,6 @@ const ProfilePage = () => {
       });
       if (selectedFile) {
         formData.append("photo", selectedFile);
-("/")
       }
 
       const response = await axios.put(
@@ -190,7 +198,7 @@ const ProfilePage = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-formdata",
+            "Content-Type": "multipart/form-data", // Fixed typo
           },
         }
       );
@@ -200,12 +208,14 @@ const ProfilePage = () => {
       setIsEditing(false);
       setSuccess("Profile updated successfully!");
       trackInteraction("profile_management", "profile_update_success");
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
+      if (previewUrl && selectedFile) {
+        URL.revokeObjectURL(previewUrl); // Revoke only if a new file was selected
       }
       setPreviewUrl(
         response.data.user.photo
-          ? `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
+          ? response.data.user.photo.startsWith("http")
+            ? response.data.user.photo
+            : `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
           : ""
       );
       setSelectedFile(null);
@@ -227,7 +237,6 @@ const ProfilePage = () => {
       setSaveLoading(false);
     }
   };
-
   // Handle room request submission
   const handleRoomRequestSubmit = async () => {
     setRequestLoading(true);
@@ -386,10 +395,13 @@ const ProfilePage = () => {
                 <img
                   src={
                     previewUrl ||
-                    (user.photo && user.photo.startsWith('http')
-                      ? user.photo
-                      : `https://nestifyy-my3u.onrender.com/${user.photo}`) ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&size=96&background=004dc3&color=FFFFFF`
+                    (user.photo
+                      ? user.photo.startsWith("http")
+                        ? user.photo
+                        : `https://nestifyy-my3u.onrender.com/${user.photo}`
+                      : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          user.name
+                        )}&size=96&background=004dc3&color=FFFFFF`)
                   }
                   alt="Profile"
                   className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white object-cover"
@@ -431,18 +443,24 @@ const ProfilePage = () => {
                 <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 mt-2 text-sm sm:text-base">
                   <div className="flex items-center text-black">
                     <Mail className="w-4 h-4 mr-2 text-maroon flex-shrink-0" />
-                    <span className="truncate max-w-[200px] sm:max-w-[300px]">{user.email}</span>
+                    <span className="truncate max-w-[200px] sm:max-w-[300px]">
+                      {user.email}
+                    </span>
                   </div>
                   {user.phone && (
                     <div className="flex items-center text-black">
                       <Phone className="w-4 h-4 mr-2 text-maroon flex-shrink-0" />
-                      <span className="truncate max-w-[200px] sm:max-w-[300px]">{user.phone}</span>
+                      <span className="truncate max-w-[200px] sm:max-w-[300px]">
+                        {user.phone}
+                      </span>
                     </div>
                   )}
                   {user.location && (
                     <div className="flex items-center text-black">
                       <MapPin className="w-4 h-4 mr-2 text-maroon flex-shrink-0" />
-                      <span className="truncate max-w-[200px] sm:max-w-[300px]">{user.location}</span>
+                      <span className="truncate max-w-[200px] sm:max-w-[300px]">
+                        {user.location}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -585,7 +603,7 @@ const ProfilePage = () => {
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                      {/* <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
                           <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
                           <span className="text-black font-medium w-24">
@@ -607,7 +625,7 @@ const ProfilePage = () => {
                             {user.profession || "Not specified"}
                           </span>
                         )}
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div className="bg-cream rounded-xl p-4 border border-warm-gray">
@@ -698,7 +716,7 @@ const ProfilePage = () => {
               className="bg-gradient-to-r from-maroon to-light-maroon px-4 py-3 flex items-center justify-between cursor-pointer"
               onClick={() => toggleSection("roomRequest")}
             >
-              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center">
+              <h2 className="text-lg sm:text-xl font-bold text-black flex items-center">
                 <User className="w-5 h-5 mr-2" />
                 Request a Room
               </h2>
@@ -843,7 +861,8 @@ const ProfilePage = () => {
                             />
                           ) : (
                             <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                              {user.brokerInfo.clientsHandled || "Not specified"}
+                              {user.brokerInfo.clientsHandled ||
+                                "Not specified"}
                             </span>
                           )}
                         </div>
@@ -870,7 +889,8 @@ const ProfilePage = () => {
                             />
                           ) : (
                             <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                              {user.brokerInfo.propertiesSold || "Not specified"}
+                              {user.brokerInfo.propertiesSold ||
+                                "Not specified"}
                             </span>
                           )}
                         </div>
@@ -897,7 +917,8 @@ const ProfilePage = () => {
                             />
                           ) : (
                             <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                              {user.brokerInfo.experience || "Not specified"} years
+                              {user.brokerInfo.experience || "Not specified"}{" "}
+                              years
                             </span>
                           )}
                         </div>
@@ -1002,8 +1023,8 @@ const ProfilePage = () => {
                       <Frown className="w-8 h-8 text-maroon" />
                     </div>
                     <p className="text-black font-medium text-sm sm:text-base">
-                      No {user.role === "broker" ? "broker" : "user"} information
-                      available.
+                      No {user.role === "broker" ? "broker" : "user"}{" "}
+                      information available.
                     </p>
                   </div>
                 )}
