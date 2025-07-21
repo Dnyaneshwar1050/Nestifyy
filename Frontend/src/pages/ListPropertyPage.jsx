@@ -18,11 +18,11 @@ const ListPropertyPage = () => {
     area: '',
     rent: '',
     deposit: '',
-    address: '',
-    locality: '',
+    // address: '',
+    // locality: '',
     city: '',
-    district: '',
-    zipcode: '',
+    // district: '',
+    // zipcode: '',
     location: '',
     amenities: [],
     allowBroker: 'yes',
@@ -144,14 +144,13 @@ const ListPropertyPage = () => {
         bhkType: '',
         bedrooms: '',
         bathrooms: '',
-        area: '',
         rent: '',
         deposit: '',
-        address: '',
-        locality: '',
+        // address: '',
+        // locality: '',
         city: '',
-        district: '',
-        zipcode: '',
+        // district: '',
+        // zipcode: '',
         location: '',
         amenities: [],
         allowBroker: 'yes',
@@ -255,7 +254,7 @@ const ListPropertyPage = () => {
                 type="number"
                 id="bedrooms"
                 name="bedrooms"
-                value={formData.bedrooms}
+                value={formData.noOfBedroom}
                 onChange={handleChange}
                 placeholder="Number of bedrooms"
                 className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
@@ -341,7 +340,7 @@ const ListPropertyPage = () => {
         </div>
 
         {/* Address Details */}
-        <div className="form-group">
+        {/* <div className="form-group">
           <label htmlFor="address" className="block text-lg font-semibold text-text-gray-800 mb-2">Full Address *</label>
           <div className="relative">
             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
@@ -357,10 +356,10 @@ const ListPropertyPage = () => {
               onFocus={() => trackInteraction('focus', 'list_property_address_input')}
             />
           </div>
-        </div>
+        </div> */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="form-group">
-            <label htmlFor="locality" className="block text-lg font-semibold text-text-gray-800 mb-2">Locality *</label>
+          {/* <div className="form-group">
+            // <label htmlFor="locality" className="block text-lg font-semibold text-text-gray-800 mb-2">Locality *</label>
             <div className="relative">
               <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
               <input
@@ -375,7 +374,7 @@ const ListPropertyPage = () => {
                 onFocus={() => trackInteraction('focus', 'list_property_locality_input')}
               />
             </div>
-          </div>
+          </div> */}
           <div className="form-group">
             <label htmlFor="city" className="block text-lg font-semibold text-text-gray-800 mb-2">City *</label>
             <div className="relative">
@@ -395,7 +394,7 @@ const ListPropertyPage = () => {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="form-group">
+          {/* <div className="form-group">
             <label htmlFor="district" className="block text-lg font-semibold text-text-gray-800 mb-2">District *</label>
             <div className="relative">
               <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
@@ -411,8 +410,8 @@ const ListPropertyPage = () => {
                 onFocus={() => trackInteraction('focus', 'list_property_district_input')}
               />
             </div>
-          </div>
-          <div className="form-group">
+          </div> */}
+          {/* <div className="form-group">
             <label htmlFor="zipcode" className="block text-lg font-semibold text-text-gray-800 mb-2">Zipcode *</label>
             <div className="relative">
               <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
@@ -428,7 +427,7 @@ const ListPropertyPage = () => {
                 onFocus={() => trackInteraction('focus', 'list_property_zipcode_input')}
               />
             </div>
-          </div>
+          </div> */}
         </div>
         <div className="form-group">
           <label htmlFor="location" className="block text-lg font-semibold text-text-gray-800 mb-2">Location (e.g., Google Maps link) *</label>

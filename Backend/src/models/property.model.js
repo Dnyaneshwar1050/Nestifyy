@@ -11,30 +11,30 @@ const propertySchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    address: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    locality: {
-      type: String,
-      trim: true,
-    },
+    // address: {
+    //   type: String,
+    //   required: true,
+    //   trim: true,
+    // },
+    // locality: {
+    //   type: String,
+    //   trim: true,
+    // },
     city: {
       type: String,
       required: true,
       trim: true,
     },
-    district: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    zipcode: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+    // district: {
+    //   type: String,
+    //   required: true,
+    //   trim: true,
+    // },
+    // zipcode: {
+    //   type: String,
+    //   required: true,
+    //   trim: true,
+    // },
     location: {
       type: String,
       required: true,

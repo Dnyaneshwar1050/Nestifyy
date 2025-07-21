@@ -8,15 +8,16 @@ const createproperty = async (req, res) => {
     const {
       title,
       description,
-      address,
+      // address,
       city,
-      district,
-      zipcode,
+      // district,
+      // zipcode,
       location,
       rent,
       propertyType,
       noOfBedroom,
       bhkType,
+      bathrooms,
       area,
       deposit,
       amenities,
@@ -42,12 +43,14 @@ const createproperty = async (req, res) => {
     // Validate required fields
     if (
       !title ||
-      !address ||
+      // !address ||
       !city ||
-      !district ||
-      !zipcode ||
+      // !district ||
+      // !zipcode ||
       !location ||
       !rent ||
+      !deposit ||
+      !bathrooms ||
       !propertyType ||
       !noOfBedroom
     ) {
@@ -56,7 +59,7 @@ const createproperty = async (req, res) => {
       }
       return res.status(400).json({
         message:
-          "Please fill all required fields: title, address, city, district, zipcode, location, rent, propertyType, noOfBedroom.",
+          "Please fill all required fields: title, city, location, rent, propertyType, noOfBedroom.",
       });
     }
 
@@ -70,20 +73,21 @@ const createproperty = async (req, res) => {
     const newProperty = new Property({
       title,
       description,
-      address,
+      // address,
       city,
-      district,
-      zipcode: Number(zipcode),
+      // district,
+      // zipcode: Number(zipcode),
       location,
       rent: Number(rent),
       propertyType,
       noOfBedroom: Number(noOfBedroom),
       bhkType: bhkType || undefined,
-      area: area ? Number(area) : undefined,
-      deposit: deposit ? Number(deposit) : 0,
+      area: Number(area),
+      deposit: Number(deposit),
       amenities: Array.isArray(amenities) ? amenities : [],
       allowBroker: allowBroker === "true" || allowBroker === true,
       imageUrls,
+      bathrooms: Number(bathrooms),
       owner: ownerId,
     });
 
@@ -265,8 +269,7 @@ const searchProperties = async (req, res) => {
         .trim()
         .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       query.$or = [
-        { city: { $regex: escapedSearch, $options: "i" } },
-        { district: { $regex: escapedSearch, $options: "i" } },
+        { city: { $regex: escapedSearch, $options: "i" } }, 
         { propertyType: { $regex: escapedSearch, $options: "i" } },
         { location: { $regex: escapedSearch, $options: "i" } },
       ];
@@ -277,8 +280,6 @@ const searchProperties = async (req, res) => {
         .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       query.$or = [
         { city: { $regex: escapedSearch, $options: "i" } },
-        { district: { $regex: escapedSearch, $options: "i" } },
-        { area: { $regex: escapedSearch, $options: "i" } },
         { propertyType: { $regex: escapedSearch, $options: "i" } },
         { location: { $regex: escapedSearch, $options: "i" } },
       ];

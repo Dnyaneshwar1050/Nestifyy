@@ -161,7 +161,7 @@ const PropertyDetailPage = () => {
         </h1>
         <p className="text-gray-600 flex items-center mb-4 text-base">
           <MapPin size={20} className="mr-2 text-blue-500" />
-          {`${property.address}, ${property.city}, ${property.district}, ${property.zipcode}`}
+          {`${property.location}, ${property.city}`}
         </p>
 
         <div
@@ -210,7 +210,7 @@ const PropertyDetailPage = () => {
             <h2 className="text-2xl font-bold text-text-gray-800 mb-4">Property Details</h2>
             <div className="space-y-4">
               <p className="flex items-center text-gray-700">
-                <span>Rent: {property.price}</span>
+                <span>Rent: {property.rent}</span>
               </p>
               {property.deposit && (
                 <p className="flex items-center text-gray-700">
@@ -223,11 +223,11 @@ const PropertyDetailPage = () => {
               </p>
               <p className="flex items-center text-gray-700">
                 <Bed size={20} className="mr-2 text-blue-500" />
-                <span>Bedrooms: {property.beds || 'N/A'}</span>
+                <span>Bedrooms: {property.noOfBedroom || 'N/A'}</span>
               </p>
               <p className="flex items-center text-gray-700">
                 <Bath size={20} className="mr-2 text-blue-500" />
-                <span>Bathrooms: {property.baths}</span>
+                <span>Bathrooms: {property.bathrooms || 'N/A'}</span>
               </p>
               {property.area && (
                 <p className="flex items-center text-gray-700">

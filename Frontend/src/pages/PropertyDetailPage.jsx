@@ -188,7 +188,7 @@ const PropertyDetailPage = () => {
           </h1>
           <p className="text-gray-600 flex items-center text-base sm:text-lg font-medium">
             <MapPin size={24} className="mr-2 text-blue-600 flex-shrink-0" />
-            <span className="truncate">{`${property.address}, ${property.city}, ${property.district}, ${property.zipcode}`}</span>
+            <span className="truncate">{` ${property.city}, ${property.location},`}</span>
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-4 text-xl font-bold text-gray-900">
             <span className="flex items-center text-green-700">
@@ -275,15 +275,15 @@ const PropertyDetailPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
               <div className="flex items-center text-gray-800 text-lg">
                 <Building size={24} className="mr-3 text-purple-600 flex-shrink-0" />
-                <span className="font-semibold">Type:</span> <span className="ml-2">{property.type || 'N/A'}</span>
+                <span className="font-semibold">Type:</span> <span className="ml-2">{property.propertyType || 'N/A'}</span>
               </div>
               <div className="flex items-center text-gray-800 text-lg">
                 <Bed size={24} className="mr-3 text-red-600 flex-shrink-0" />
-                <span className="font-semibold">Bedrooms:</span> <span className="ml-2">{property.beds || 'N/A'}</span>
+                <span className="font-semibold">Bedrooms:</span> <span className="ml-2">{property.noOfBedroom || 'N/A'}</span>
               </div>
               <div className="flex items-center text-gray-800 text-lg">
                 <Bath size={24} className="mr-3 text-blue-600 flex-shrink-0" />
-                <span className="font-semibold">Bathrooms:</span> <span className="ml-2">{property.baths}</span>
+                <span className="font-semibold">Bathrooms:</span> <span className="ml-2">{property.bathrooms}</span>
               </div>
               {property.area && (
                 <div className="flex items-center text-gray-800 text-lg">
