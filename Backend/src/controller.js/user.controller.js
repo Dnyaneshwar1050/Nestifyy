@@ -126,98 +126,49 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-const updateUserProfile = async (req, res) => {
+ const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     const updateData = { ...req.body };
-
-    console.log('UpdateUserProfile - Received body:', req.body);
-    console.log('UpdateUserProfile - Received file:', req.file);
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Prevent updates to protected fields for non-admins
-    const isAdmin = user.role === 'admin' || user.role === 'super-admin';
-    if (!isAdmin) {
-      delete updateData.name;
-      delete updateData.gender;
-      delete updateData.age;
-    }
-
-    // Remove other protected fields
-    delete updateData._id;
-    delete updateData.createdAt;
-    delete updateData.updatedAt;
-    delete updateData.__v;
-    delete updateData.password;
-
-    // Validate fields
-    if (updateData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updateData.email)) {
-      return res.status(400).json({ message: 'Invalid email format' });
-    }
-    // if (updateData.phone && !/^\+?\d{10,15}$/.test(updateData.phone)) {
-    //   return res.status(400).json({ message: 'Invalid phone number format (10-15 digits)' });
-    // }
-    // if (updateData.profession && updateData.profession.length > 100) {
-    //   return res.status(400).json({ message: 'Profession cannot exceed 100 characters' });
-    // }
-    if (updateData.location && !updateData.location.trim()) {
-      return res.status(400).json({ message: 'Location cannot be empty' });
-    }
-
-    // Handle photo upload
+    delete updateData.password; // Don't allow password update through this route
+    delete updateData.isAdmin; // Don't allow role change through this route
+    
+    // Handle photo upload if present
     if (req.file) {
-      try {
-        // Delete old photo if it exists
-        if (user.photo && user.photo.startsWith('https://res.cloudinary.com/')) {
-          const publicIdMatch = user.photo.match(/\/v\d+\/(.+?)\.(jpg|jpeg|png|gif)$/i);
-          if (publicIdMatch && publicIdMatch[1]) {
-            const publicId = publicIdMatch[1];
-            console.log('Deleting previous photo with publicId:', publicId);
-            try {
-              await deleteImage(publicId);
-            } catch (deleteError) {
-              console.warn('Failed to delete old photo:', deleteError.message);
-              // Continue with upload even if deletion fails to avoid blocking
-            }
-          } else {
-            console.warn('Invalid or missing publicId for old photo:', user.photo);
-          }
-        }
-
-        // Upload new photo
-        const result = await uploadImage(req.file);
-        console.log('New photo uploaded:', result.secure_url);
-        updateData.photo = result.secure_url;
-      } catch (error) {
-        console.error('Photo upload error:', error);
-        return res.status(500).json({ message: 'Failed to upload photo', error: error.message });
+      // Delete old photo if exists
+      const user = await User.findById(userId);
+      if (user && user.photo) {
+        // Extract public_id from the URL (assuming Cloudinary)
+        const publicId = user.photo.split('/').pop().split('.')[0];
+        await deleteImage(publicId);
       }
+      
+      const result = await uploadImage(req.file.path);
+      updateData.photo = result.secure_url;
+      // Remove the temp file
+      fs.unlinkSync(req.file.path);
     }
-
+    
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
-      { new: true, runValidators: true }
+      { new: true }
     ).select('-password');
-
+    
     if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found after update' });
+      return res.status(404).json({ message: 'User not found' });
     }
-
-    console.log('Updated user:', updatedUser);
+    
     res.status(200).json({
       user: updatedUser,
       message: 'Profile updated successfully'
     });
   } catch (error) {
     console.error('Error in updateUserProfile:', error);
-    res.status(500).json({ message: 'Server error, please try again later', error: error.message });
+    res.status(500).json({ message: 'Server error, please try again later' });
   }
 };
+
 
 const getUserById = async (req, res) => {
   try {
