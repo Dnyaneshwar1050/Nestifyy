@@ -152,7 +152,7 @@ const ProfilePage = () => {
 
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
+      if (!token && !id) {
         throw new Error("No authentication token found");
       }
 

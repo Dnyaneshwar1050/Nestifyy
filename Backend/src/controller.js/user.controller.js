@@ -9,13 +9,23 @@ const registerUser = async (req, res) => {
     console.log("Request body:", req.body);
     console.log("Request file:", req.file);
 
-    const { name, email, password, role, phone, gender, age, photo, location, profession } =
-      req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      phone,
+      gender,
+      age,
+      photo,
+      location,
+      profession,
+    } = req.body;
 
     if (!name || !email || !password || !phone || !age) {
-      return res
-        .status(400)
-        .json({ message: "Name, email, password, phone, and age are required" });
+      return res.status(400).json({
+        message: "Name, email, password, phone, and age are required",
+      });
     }
 
     const existingUser = await User.findOne({ email });
@@ -32,7 +42,9 @@ const registerUser = async (req, res) => {
         photoUrl = result.secure_url;
       } catch (error) {
         console.error("Photo upload error:", error);
-        return res.status(500).json({ message: "Failed to upload photo", error: error.message });
+        return res
+          .status(500)
+          .json({ message: "Failed to upload photo", error: error.message });
       }
     }
 
@@ -87,9 +99,12 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined in environment variables");
+    }
     const token = jwt.sign(
       { id: user._id, role: user.role },
-      process.env.JWT_SECRET || "1ba3d7872fad1fe2",
+      process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRATION || "1d" }
     );
 
@@ -126,49 +141,48 @@ const getUserProfile = async (req, res) => {
   }
 };
 
- const updateUserProfile = async (req, res) => {
+const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     const updateData = { ...req.body };
     delete updateData.password; // Don't allow password update through this route
     delete updateData.isAdmin; // Don't allow role change through this route
-    
+
     // Handle photo upload if present
     if (req.file) {
       // Delete old photo if exists
       const user = await User.findById(userId);
       if (user && user.photo) {
         // Extract public_id from the URL (assuming Cloudinary)
-        const publicId = user.photo.split('/').pop().split('.')[0];
+        const publicId = user.photo.split("/").pop().split(".")[0];
         await deleteImage(publicId);
       }
-      
+
       const result = await uploadImage(req.file.path);
       updateData.photo = result.secure_url;
       // Remove the temp file
       fs.unlinkSync(req.file.path);
     }
-    
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
       { new: true }
-    ).select('-password');
-    
+    ).select("-password");
+
     if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
-    
+
     res.status(200).json({
       user: updatedUser,
-      message: 'Profile updated successfully'
+      message: "Profile updated successfully",
     });
   } catch (error) {
-    console.error('Error in updateUserProfile:', error);
-    res.status(500).json({ message: 'Server error, please try again later' });
+    console.error("Error in updateUserProfile:", error);
+    res.status(500).json({ message: "Server error, please try again later" });
   }
 };
-
 
 const getUserById = async (req, res) => {
   try {
@@ -196,7 +210,10 @@ const updateUser = async (req, res) => {
     const requestingUserId = req.user.id;
     const requestingUser = await User.findById(requestingUserId);
 
-    if (!requestingUser || !['admin', 'super-admin'].includes(requestingUser.role)) {
+    if (
+      !requestingUser ||
+      !["admin", "super-admin"].includes(requestingUser.role)
+    ) {
       return res
         .status(403)
         .json({ message: "Only admins can modify user data" });
@@ -240,7 +257,10 @@ const deleteUser = async (req, res) => {
     const requestingUserId = req.user.id;
     const requestingUser = await User.findById(requestingUserId);
 
-    if (!requestingUser || !['admin', 'super-admin'].includes(requestingUser.role)) {
+    if (
+      !requestingUser ||
+      !["admin", "super-admin"].includes(requestingUser.role)
+    ) {
       return res.status(403).json({ message: "Only admins can delete users" });
     }
 
@@ -258,8 +278,13 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (deletedUser.photo && deletedUser.photo.startsWith('https://res.cloudinary.com/')) {
-      const publicIdMatch = deletedUser.photo.match(/\/v\d+\/(.+?)\.(jpg|jpeg|png|gif)$/i);
+    if (
+      deletedUser.photo &&
+      deletedUser.photo.startsWith("https://res.cloudinary.com/")
+    ) {
+      const publicIdMatch = deletedUser.photo.match(
+        /\/v\d+\/(.+?)\.(jpg|jpeg|png|gif)$/i
+      );
       if (publicIdMatch && publicIdMatch[1]) {
         await deleteImage(publicIdMatch[1]);
       }
