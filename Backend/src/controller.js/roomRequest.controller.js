@@ -54,7 +54,6 @@ const searchRoomRequests = async (req, res) => {
       return res.status(200).json([]);
     }
 
-    // Search query
     if (search && search.trim()) {
       const escapedSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.$or = [
@@ -63,12 +62,10 @@ const searchRoomRequests = async (req, res) => {
       ];
     }
 
-    // Gender filter
     if (gender && ['Male', 'Female', 'Other'].includes(gender)) {
       query['user.gender'] = gender;
     }
 
-    // Budget range filter
     if (priceRange && priceRange.trim()) {
       if (priceRange.includes('-')) {
         const [minBudget, maxBudget] = priceRange.split('-').map((val) => parseFloat(val));
@@ -83,19 +80,16 @@ const searchRoomRequests = async (req, res) => {
       }
     }
 
-    // Execute query
     let findQuery = RoomRequest.find(query)
       .populate('user', 'name number gender photo')
       .lean();
 
-    // Apply limit only if no search query
     if (!search || !search.trim()) {
       findQuery = findQuery.limit(4);
     }
 
     let roomRequests = await findQuery;
 
-    // Apply sorting
     switch (sortBy) {
       case 'rent-low':
         roomRequests = roomRequests.sort((a, b) => a.budget - b.budget);
@@ -125,20 +119,49 @@ const searchRoomRequests = async (req, res) => {
 const getUserRoomRequests = async (req, res) => {
   try {
     const userId = req.user?._id || req.user?.id;
+    console.log("getUserRoomRequests: userId:", userId);
+
     if (!userId) {
+      console.error("getUserRoomRequests: No user ID found in req.user:", req.user);
       return res.status(401).json({ message: "Unauthorized: No user ID found" });
+    }
+
+    if (!/^[0-9a-fA-F]{24}$/.test(userId)) {
+      console.error("getUserRoomRequests: Invalid userId format:", userId);
+      return res.status(400).json({ message: "Invalid user ID format" });
     }
 
     const roomRequests = await RoomRequest.find({ user: userId })
       .populate("user", "name number gender photo")
-      .lean();
+      .lean()
+      .catch((err) => {
+        console.error("getUserRoomRequests: MongoDB query error:", {
+          message: err.message,
+          stack: err.stack,
+          userId,
+          timestamp: new Date().toISOString(),
+        });
+        throw new Error("Database query failed");
+      });
+
+    console.log("getUserRoomRequests: Fetched room requests:", roomRequests.length);
 
     res.status(200).json(roomRequests);
   } catch (error) {
-    console.error("Error fetching user room requests:", error);
+    console.error("getUserRoomRequests: Error:", {
+      message: error.message,
+      stack: error.stack,
+      userId: req.user?._id || req.user?.id || "unknown",
+      timestamp: new Date().toISOString(),
+    });
     res.status(500).json({
       message: "Failed to fetch room requests",
       error: error.message,
+      details: {
+        userId: req.user?._id || req.user?.id || "unknown",
+        errorName: error.name,
+        errorCode: error.code,
+      },
     });
   }
 };
@@ -147,6 +170,13 @@ const deleteRoomRequest = async (req, res) => {
   try {
     const requestId = req.params.id;
     const userId = req.user?._id || req.user?.id;
+
+    console.log("deleteRoomRequest: requestId:", requestId, "userId:", userId);
+
+    if (!/^[0-9a-fA-F]{24}$/.test(requestId)) {
+      console.error("deleteRoomRequest: Invalid requestId format:", requestId);
+      return res.status(400).json({ message: "Invalid room request ID format" });
+    }
 
     const roomRequest = await RoomRequest.findById(requestId);
     if (!roomRequest) {
@@ -161,8 +191,23 @@ const deleteRoomRequest = async (req, res) => {
 
     res.status(200).json({ message: "Room request deleted successfully" });
   } catch (error) {
-    console.error("Error in deleteRoomRequest:", error);
-    res.status(500).json({ message: "Server error, please try again later" });
+    console.error("deleteRoomRequest: Error:", {
+      message: error.message,
+      stack: error.stack,
+      requestId: req.params.id,
+      userId: req.user?._id || req.user?.id || "unknown",
+      timestamp: new Date().toISOString(),
+    });
+    res.status(500).json({
+      message: "Failed to delete room request",
+      error: error.message,
+      details: {
+        requestId: req.params.id,
+        userId: req.user?._id || req.user?.id || "unknown",
+        errorName: error.name,
+        errorCode: error.code,
+      },
+    });
   }
 };
 
