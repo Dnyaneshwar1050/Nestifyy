@@ -72,16 +72,9 @@ const ProfilePage = () => {
         const userData = response.data.user || response.data;
         setUser(userData);
         setEditForm(userData);
-        // Set initial photo URL
-        const photoUrl = userData.photo
-          ? userData.photo.startsWith("http")
-            ? userData.photo
-            : `https://nestifyy-my3u.onrender.com/${userData.photo}`
-          : `https://ui-avatars.com/api/?name=${encodeURIComponent(
-              userData.name
-            )}&size=96&background=004dc3&color=FFFFFF`;
-        setPreviewUrl(photoUrl);
-        console.log("Initial photo URL:", photoUrl);
+        if (userData.photo) {
+          setPreviewUrl(userData.photo);
+        }
         setSuccess("Profile loaded successfully!");
         trackInteraction("data_fetch", "profile_success", {
           userId: id || "current_user",
@@ -119,21 +112,24 @@ const ProfilePage = () => {
     if (file) {
       if (!file.type.match(/image\/(jpeg|png|gif)/)) {
         setError("Please select a valid image file (JPEG, PNG, or GIF)");
+        setFieldErrors((prev) => ({ ...prev, photo: "Invalid file type" }));
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
         setError("Image size should be less than 5MB");
+        setFieldErrors((prev) => ({ ...prev, photo: "Image size exceeds 5MB" }));
         return;
       }
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
-      console.log("Preview photo URL (local):", url);
       setError("");
+      setFieldErrors((prev) => ({ ...prev, photo: "" }));
       setSuccess("Photo selected successfully!");
       trackInteraction("file_select", "profile_photo_edit");
     } else {
       setError("No file selected");
+      setFieldErrors((prev) => ({ ...prev, photo: "No file selected" }));
     }
   };
 
@@ -144,6 +140,8 @@ const ProfilePage = () => {
       fieldError = "Location cannot be empty";
     } else if (field === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       fieldError = "Please enter a valid email address";
+    } else if (field === "phone" && value && !/^\+?\d{10,15}$/.test(value)) {
+      fieldError = "Please enter a valid phone number (10-15 digits)";
     } else if (field === "profession" && value.length > 100) {
       fieldError = "Profession cannot exceed 100 characters";
     }
@@ -191,8 +189,6 @@ const ProfilePage = () => {
     setSaveLoading(true);
     setError("");
     setSuccess("");
-    // Store current photo URL as fallback
-    const previousPhotoUrl = previewUrl;
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -240,32 +236,28 @@ const ProfilePage = () => {
       setIsEditing(false);
       setSuccess("Profile updated successfully!");
       trackInteraction("profile_management", "profile_update_success");
-
-      // Update photo URL with backend response
-      const newPhotoUrl = response.data.user.photo
-        ? response.data.user.photo.startsWith("http")
-          ? response.data.user.photo
-          : `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
-        : `https://ui-avatars.com/api/?name=${encodeURIComponent(
-            response.data.user.name
-          )}&size=96&background=004dc3&color=FFFFFF`;
-      setPreviewUrl(newPhotoUrl);
-      console.log("Updated photo URL:", newPhotoUrl);
-
-      // Clean up
-      if (selectedFile && previewUrl.startsWith("blob:")) {
+      if (previewUrl && selectedFile) {
         URL.revokeObjectURL(previewUrl);
       }
+      setPreviewUrl(
+        response.data.user.photo
+          ? response.data.user.photo.startsWith("http")
+            ? response.data.user.photo
+            : `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
+          : ""
+      );
       setSelectedFile(null);
     } catch (err) {
       console.error("Profile update error:", err);
-      setError(
-        err.response?.data?.message || err.message || "Failed to update profile"
-      );
-      // Revert to previous photo URL on error
-      setPreviewUrl(previousPhotoUrl);
+      const errorMessage =
+        err.response?.data?.message || err.message || "Failed to update profile";
+      setError(errorMessage);
+      if (errorMessage.includes("photo")) {
+        setFieldErrors((prev) => ({ ...prev, photo: errorMessage }));
+        setPreviewUrl(user?.photo || ""); // Revert to old photo on failure
+      }
       trackInteraction("profile_management", "profile_update_failure", {
-        error: err.response?.data?.message || err.message,
+        error: errorMessage,
       });
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
@@ -282,18 +274,12 @@ const ProfilePage = () => {
     setError("");
     setFieldErrors({});
     setSuccess("");
-    if (previewUrl && previewUrl.startsWith("blob:")) {
+    if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
-    // Restore user photo URL
-    const photoUrl = user?.photo
-      ? user.photo.startsWith("http")
-        ? user.photo
-        : `https://nestifyy-my3u.onrender.com/${user.photo}`
-      : `https://ui-avatars.com/api/?name=${encodeURIComponent(
-          user?.name || "User"
-        )}&size=96&background=004dc3&color=FFFFFF`;
-    setPreviewUrl(photoUrl);
+    setPreviewUrl(
+      user?.photo ? user.photo.startsWith("http") ? user.photo : `https://nestifyy-my3u.onrender.com/${user.photo}` : ""
+    );
     setSelectedFile(null);
     trackInteraction("click", "profile_cancel_edit");
   };
@@ -385,15 +371,18 @@ const ProfilePage = () => {
             <div className="absolute -bottom-12 sm:-bottom-16 left-4 sm:left-6">
               <div className="relative">
                 <img
-                  src={`${previewUrl}?t=${Date.now()}`}
+                  src={
+                    previewUrl ||
+                    (user.photo
+                      ? user.photo.startsWith("http")
+                        ? user.photo
+                        : `https://nestifyy-my3u.onrender.com/${user.photo}`
+                      : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          user.name
+                        )}&size=96&background=004dc3&color=FFFFFF`)
+                  }
                   alt="Profile"
                   className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white object-cover"
-                  onError={(e) => {
-                    console.error("Image load error, falling back to avatar");
-                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                      user.name || "User"
-                    )}&size=96&background=004dc3&color=FFFFFF`;
-                  }}
                 />
                 {isEditing && !id && (
                   <label className="absolute bottom-0 right-0 bg-maroon rounded-full p-1.5 sm:p-2 cursor-pointer shadow-md hover:bg-deep-maroon transition-colors">
@@ -407,6 +396,11 @@ const ProfilePage = () => {
                   </label>
                 )}
               </div>
+              {fieldErrors.photo && isEditing && (
+                <p className="text-red-500 text-xs mt-2 max-w-[120px] sm:max-w-[160px]">
+                  {fieldErrors.photo}
+                </p>
+              )}
             </div>
           </div>
           <div className="pt-16 sm:pt-20 pb-6 px-4 sm:px-6">
@@ -560,7 +554,7 @@ const ProfilePage = () => {
                           {user.age || "Not specified"}
                         </span>
                       </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                      {/* <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
                           <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
                           <span className="text-black font-medium w-24">
@@ -589,7 +583,7 @@ const ProfilePage = () => {
                             {user.profession || "Not specified"}
                           </span>
                         )}
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div className="bg-cream rounded-xl p-4 border border-warm-gray">
@@ -638,13 +632,13 @@ const ProfilePage = () => {
                         {isEditing ? (
                           <div className="flex-1 relative">
                             <input
-                              type="text"
+                              type="tel"
                               value={editForm.phone || ""}
                               onChange={(e) =>
                                 handleInputChange("phone", e.target.value)
                               }
                               className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                              placeholder="Enter phone number"
+                              placeholder="Enter phone number (e.g., +1234567890)"
                             />
                             {fieldErrors.phone && (
                               <p className="text-red-500 text-xs mt-1">
@@ -767,6 +761,8 @@ const ProfilePage = () => {
             .w-24 { width: 5rem; }
             .max-w-[200px] { max-width: 70%; }
             .max-w-[300px] { max-width: 80%; }
+            .max-w-[120px] { max-width: 60%; }
+            .max-w-[160px] { max-width: 70%; }
           }
         `}</style>
       </div>

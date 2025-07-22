@@ -12,10 +12,10 @@ const registerUser = async (req, res) => {
     const { name, email, password, role, phone, gender, age, photo, location, profession } =
       req.body;
 
-    if (!name || !email || !password || !age) {
+    if (!name || !email || !password || !phone || !age) {
       return res
         .status(400)
-        .json({ message: "Name, email, password, and age are required" });
+        .json({ message: "Name, email, password, phone, and age are required" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -28,9 +28,11 @@ const registerUser = async (req, res) => {
     if (req.file) {
       console.log("Uploading file:", req.file);
       try {
-        photoUrl = await uploadImage(req.file);
+        const result = await uploadImage(req.file);
+        photoUrl = result.secure_url;
       } catch (error) {
-        return res.status(500).json({ message: error.message });
+        console.error("Photo upload error:", error);
+        return res.status(500).json({ message: "Failed to upload photo", error: error.message });
       }
     }
 
@@ -40,11 +42,10 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       role: role || "user",
       age: Number(age),
-      phone: phone || "",
+      phone,
       location,
       photo: photoUrl,
       gender: gender || "Other",
-      profession: profession || "",
     });
     await user.save();
 
@@ -58,7 +59,6 @@ const registerUser = async (req, res) => {
         age,
         location,
         gender,
-        profession,
       },
     });
   } catch (error) {
@@ -154,13 +154,16 @@ const updateUserProfile = async (req, res) => {
     delete updateData.__v;
     delete updateData.password;
 
-    // Validate fields (exclude phone)
+    // Validate fields
     if (updateData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updateData.email)) {
       return res.status(400).json({ message: 'Invalid email format' });
     }
-    if (updateData.profession && updateData.profession.length > 100) {
-      return res.status(400).json({ message: 'Profession cannot exceed 100 characters' });
-    }
+    // if (updateData.phone && !/^\+?\d{10,15}$/.test(updateData.phone)) {
+    //   return res.status(400).json({ message: 'Invalid phone number format (10-15 digits)' });
+    // }
+    // if (updateData.profession && updateData.profession.length > 100) {
+    //   return res.status(400).json({ message: 'Profession cannot exceed 100 characters' });
+    // }
     if (updateData.location && !updateData.location.trim()) {
       return res.status(400).json({ message: 'Location cannot be empty' });
     }
@@ -169,19 +172,25 @@ const updateUserProfile = async (req, res) => {
     if (req.file) {
       try {
         // Delete old photo if it exists
-        if (user.photo) {
-          const publicId = user.photo.split('/').pop().split('.')[0];
-          console.log('Deleting previous photo with publicId:', publicId);
-          try {
-            await deleteImage(publicId);
-            console.log('Old photo deleted successfully');
-          } catch (deleteError) {
-            console.error('Error deleting old photo:', deleteError);
-            // Continue with upload even if deletion fails to avoid blocking
+        if (user.photo && user.photo.startsWith('https://res.cloudinary.com/')) {
+          const publicIdMatch = user.photo.match(/\/v\d+\/(.+?)\.(jpg|jpeg|png|gif)$/i);
+          if (publicIdMatch && publicIdMatch[1]) {
+            const publicId = publicIdMatch[1];
+            console.log('Deleting previous photo with publicId:', publicId);
+            try {
+              await deleteImage(publicId);
+            } catch (deleteError) {
+              console.warn('Failed to delete old photo:', deleteError.message);
+              // Continue with upload even if deletion fails to avoid blocking
+            }
+          } else {
+            console.warn('Invalid or missing publicId for old photo:', user.photo);
           }
         }
+
+        // Upload new photo
         const result = await uploadImage(req.file);
-        console.log('New photo uploaded:', result);
+        console.log('New photo uploaded:', result.secure_url);
         updateData.photo = result.secure_url;
       } catch (error) {
         console.error('Photo upload error:', error);
@@ -298,9 +307,11 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (deletedUser.photo) {
-      const publicId = deletedUser.photo.split("/").pop().split(".")[0];
-      await deleteImage(publicId);
+    if (deletedUser.photo && deletedUser.photo.startsWith('https://res.cloudinary.com/')) {
+      const publicIdMatch = deletedUser.photo.match(/\/v\d+\/(.+?)\.(jpg|jpeg|png|gif)$/i);
+      if (publicIdMatch && publicIdMatch[1]) {
+        await deleteImage(publicIdMatch[1]);
+      }
     }
 
     res.status(200).json({ message: "User deleted successfully" });
