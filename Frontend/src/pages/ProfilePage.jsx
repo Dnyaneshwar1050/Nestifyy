@@ -57,7 +57,7 @@ const ProfilePage = () => {
           throw new Error('No authentication token found');
         }
         
-        const response = await axios.get(`https://matrimonial-9xhm.onrender.com/api/users/profile`, {
+        const response = await axios.get(`https://nestifyy-my3u.onrender.com/api/users/profile`, {
           headers: { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
