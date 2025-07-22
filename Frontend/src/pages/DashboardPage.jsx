@@ -44,15 +44,15 @@ const DashboardPage = () => {
       }
 
       // Fetch user-created properties
-      // try {
-      //   const propertiesResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/property/my-properties', {
-      //     headers: { Authorization: `Bearer ${token}` },
-      //   });
-      //   setProperties(propertiesResponse.data.properties || []);
-      // } catch (propErr) {
-      //   console.error('fetchUserData: Properties fetch error:', propErr);
-      //   setError(propErr.response?.data?.message || 'Failed to load properties. Please try again later.');
-      // }
+      try {
+        const propertiesResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/property/my-properties', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProperties(propertiesResponse.data.properties || []);
+      } catch (propErr) {
+        console.error('fetchUserData: Properties fetch error:', propErr);
+        setError(propErr.response?.data?.message || 'Failed to load properties. Please try again later.');
+      }
 
       // Fetch user-created room requests
       try {
@@ -211,7 +211,7 @@ const DashboardPage = () => {
 
       {userRole === 'user' && (
         <>
-          {/* <section className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8 border border-warm-gray animate-fade-in-up animation-delay-100">
+          <section className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8 border border-warm-gray animate-fade-in-up animation-delay-100">
             <h2 className="text-2xl font-bold text-black mb-4 flex items-center space-x-3">
               <Home size={28} className="text-maroon" />
               <span>My Properties</span>
@@ -268,7 +268,7 @@ const DashboardPage = () => {
                 </table>
               </div>
             )}
-          </section> */}
+          </section>
 
           <section className="bg-white rounded-2xl shadow-lg overflow-hidden border border-warm-gray mb-8 animate-fade-in-up animation-delay-200">
             <div
