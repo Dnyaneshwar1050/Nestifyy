@@ -1,10 +1,18 @@
-// src/components/Footer.jsx
 import React, { useContext } from 'react';
-import { AppContext} from '../context/AppContext';
-import { Home, FacebookIcon, MapPin, PhoneCall, Mail, Twitter, Linkedin } from 'lucide-react'; // Import icons for social media
+import { useNavigate } from 'react-router-dom';
+import { AppContext } from '../context/AppContext';
+import { Home, Instagram, Facebook, MessageCircle } from 'lucide-react'; // Updated to include Instagram and WhatsApp icons
 
 const Footer = () => {
   const { trackInteraction } = useContext(AppContext);
+  const navigate = useNavigate();
+
+  // Function to handle internal navigation and tracking
+  const handleNavigation = (path, elementId) => {
+    trackInteraction('click', elementId);
+    navigate(path);
+  };
+
   return (
     <footer className="bg-gray-900 text-gray-300 py-10 px-6 rounded-t-xl shadow-inner mt-12 md:px-12">
       <div className="grid grid-cols-1 gap-10 max-w-screen-xl mx-auto md:grid-cols-4">
@@ -18,14 +26,35 @@ const Footer = () => {
             Your ultimate platform for finding perfect rooms and roommates, simplifying your housing journey.
           </p>
           <div className="flex space-x-4 mt-6">
-            <a href="#" className="text-gray-400 transition-colors duration-200 hover:text-blue-400" onClick={() => trackInteraction('click', 'footer_social_facebook')} aria-label="Facebook">
-              <FacebookIcon size={24} />
+            <a
+              href="https://www.facebook.com/nestify"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 transition-colors duration-200 hover:text-blue-400"
+              onClick={() => trackInteraction('click', 'footer_social_facebook')}
+              aria-label="Facebook"
+            >
+              <Facebook size={24} />
             </a>
-            <a href="#" className="text-gray-400 transition-colors duration-200 hover:text-blue-400" onClick={() => trackInteraction('click', 'footer_social_twitter')} aria-label="Twitter">
-              <Twitter size={24} />
+            <a
+              href="https://www.instagram.com/nestify"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 transition-colors duration-200 hover:text-blue-400"
+              onClick={() => trackInteraction('click', 'footer_social_instagram')}
+              aria-label="Instagram"
+            >
+              <Instagram size={24} />
             </a>
-            <a href="#" className="text-gray-400 transition-colors duration-200 hover:text-blue-400" onClick={() => trackInteraction('click', 'footer_social_linkedin')} aria-label="LinkedIn">
-              <Linkedin size={24} />
+            <a
+              href="https://wa.me/919876543210"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 transition-colors duration-200 hover:text-blue-400"
+              onClick={() => trackInteraction('click', 'footer_social_whatsapp')}
+              aria-label="WhatsApp"
+            >
+              <MessageCircle size={24} />
             </a>
           </div>
         </div>
@@ -34,11 +63,46 @@ const Footer = () => {
         <div>
           <h4 className="text-white font-bold text-lg mb-5 border-b border-gray-700 pb-2">Quick Links</h4>
           <ul className="list-none p-0 m-0 flex flex-col space-y-3 text-sm">
-            <li><a href="#" className="text-gray-400 no-underline transition-colors duration-200 hover:text-white" onClick={() => trackInteraction('click', 'footer_about_us')}>About Us</a></li>
-            <li><a href="#" className="text-gray-400 no-underline transition-colors duration-200 hover:text-white" onClick={() => trackInteraction('click', 'footer_how_it_works')}>How It Works</a></li>
-            <li><a href="#" className="text-gray-400 no-underline transition-colors duration-200 hover:text-white" onClick={() => trackInteraction('click', 'footer_faq')}>FAQ</a></li>
-            <li><a href="#" className="text-gray-400 no-underline transition-colors duration-200 hover:text-white" onClick={() => trackInteraction('click', 'footer_terms_conditions')}>Terms & Conditions</a></li>
-            <li><a href="#" className="text-gray-400 no-underline transition-colors duration-200 hover:text-white" onClick={() => trackInteraction('click', 'footer_privacy_policy')}>Privacy Policy</a></li>
+            <li>
+              <button
+                onClick={() => handleNavigation('/about', 'footer_about_us')}
+                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
+              >
+                About Us
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => handleNavigation('/how-it-works', 'footer_how_it_works')}
+                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
+              >
+                How It Works
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => handleNavigation('/faq', 'footer_faq')}
+                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
+              >
+                FAQ
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => handleNavigation('/terms', 'footer_terms_conditions')}
+                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
+              >
+                Terms & Conditions
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => handleNavigation('/privacy', 'footer_privacy_policy')}
+                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
+              >
+                Privacy Policy
+              </button>
+            </li>
           </ul>
         </div>
 
@@ -46,11 +110,46 @@ const Footer = () => {
         <div>
           <h4 className="text-white font-bold text-lg mb-5 border-b border-gray-700 pb-2">Explore</h4>
           <ul className="list-none p-0 m-0 flex flex-col space-y-3 text-sm">
-            <li><a href="#" className="text-gray-400 no-underline transition-colors duration-200 hover:text-white" onClick={() => trackInteraction('click', 'footer_find_room_link')}>Find Room</a></li>
-            <li><a href="#" className="text-gray-400 no-underline transition-colors duration-200 hover:text-white" onClick={() => trackInteraction('click', 'footer_find_roommate_link')}>Find Roommate</a></li>
-            <li><a href="#" className="text-gray-400 no-underline transition-colors duration-200 hover:text-white" onClick={() => trackInteraction('click', 'footer_list_property_link')}>List Property</a></li>
-            <li><a href="#" className="text-gray-400 no-underline transition-colors duration-200 hover:text-white" onClick={() => trackInteraction('click', 'footer_broker_zone_link')}>Broker Zone</a></li>
-            <li><a href="#" className="text-gray-400 no-underline transition-colors duration-200 hover:text-white" onClick={() => trackInteraction('click', 'footer_cities_link')}>Cities</a></li>
+            <li>
+              <button
+                onClick={() => handleNavigation('/find-room', 'footer_find_room_link')}
+                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
+              >
+                Find Room
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => handleNavigation('/find-roommate', 'footer_find_roommate_link')}
+                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
+              >
+                Find Roommate
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => handleNavigation('/list-property', 'footer_list_property_link')}
+                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
+              >
+                List Property
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => handleNavigation('/support', 'footer_support_link')}
+                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
+              >
+                Support
+              </button>
+            </li>
+            {/* <li>
+              <button
+                onClick={() => handleNavigation('/cities', 'footer_cities_link')}
+                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
+              >
+                Cities
+              </button>
+            </li> */}
           </ul>
         </div>
 
@@ -60,7 +159,7 @@ const Footer = () => {
           <address className="not-italic text-gray-400 text-sm flex flex-col space-y-3">
             <p className="flex items-start leading-tight">
               <MapPin size={18} className="text-blue-400 mr-2 flex-shrink-0 mt-px" />
-              123 Nestify Towers, Tech City,<br/> Pune, Maharashtra, India
+              123 Nestify Towers, Tech City,<br /> Pune, Maharashtra, India
             </p>
             <p className="flex items-start leading-tight">
               <PhoneCall size={18} className="text-blue-400 mr-2 flex-shrink-0 mt-px" />
