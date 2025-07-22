@@ -111,29 +111,29 @@ const ProfilePage = () => {
     const file = e.target.files[0];
     if (file) {
       // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError('Please select a valid image file');
+      if (!file.type.startsWith("image/")) {
+        setError("Please select a valid image file");
         return;
       }
-      
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image size should be less than 5MB');
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError("Image size should be less than 10MB");
         return;
       }
-      
+
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
-      setError('');
+      setError("");
     }
   };
 
   // Handle form input changes with validation
   const handleInputChange = (field, value) => {
-    setEditForm(prev => ({
+    setEditForm((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -147,40 +147,44 @@ const ProfilePage = () => {
 
   const handleSave = async () => {
     setSaveLoading(true);
-    setError('');
-    setSuccess('');
-    
+    setError("");
+    setSuccess("");
+
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error("No authentication token found");
       }
 
       // Create FormData for file upload
       const formData = new FormData();
-      
+
       // Append all form fields
-      Object.keys(editForm).forEach(key => {
+      Object.keys(editForm).forEach((key) => {
         if (editForm[key] !== null && editForm[key] !== undefined) {
           // Skip arrays and objects that shouldn't be updated via this endpoint
-          if (!['endorsements', 'weddings', '_id', '__v', 'createdAt'].includes(key)) {
+          if (
+            !["endorsements", "weddings", "_id", "__v", "createdAt"].includes(
+              key
+            )
+          ) {
             formData.append(key, editForm[key]);
           }
         }
       });
-      
+
       // Append photo if selected
       if (selectedFile) {
-        formData.append('photo', selectedFile);
+        formData.append("photo", selectedFile);
       }
 
       const response = await axios.put(
-        `https://nestifyy-my3u.onrender.com/api/users/profile`,
+        `https://nestifyy-my3u.onrender.com/api/user/profile`,
         formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -189,24 +193,27 @@ const ProfilePage = () => {
       setUser(response.data);
       setEditForm(response.data);
       setIsEditing(false);
-      setSuccess('Profile updated successfully!');
-      
+      setSuccess("Profile updated successfully!");
+
       // Clean up file preview
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
       }
-      setPreviewUrl('');
+      setPreviewUrl("");
       setSelectedFile(null);
-      
     } catch (err) {
-      console.error('Profile update error:', err);
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to update profile';
+      console.error("Profile update error:", err); // Log the full error object
+      console.error("Error response:", err.response); // Log the response details
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to update profile";
       setError(errorMessage);
-      
+
       // Redirect to login if token is invalid
       if (err.response?.status === 401) {
-        localStorage.removeItem('token');
-        navigate('/login');
+        localStorage.removeItem("token");
+        navigate("/login");
       }
     } finally {
       setSaveLoading(false);
@@ -222,7 +229,11 @@ const ProfilePage = () => {
       URL.revokeObjectURL(previewUrl);
     }
     setPreviewUrl(
-      user?.photo ? user.photo.startsWith("http") ? user.photo : `https://nestifyy-my3u.onrender.com/${user.photo}` : ""
+      user?.photo
+        ? user.photo.startsWith("http")
+          ? user.photo
+          : `https://nestifyy-my3u.onrender.com/${user.photo}`
+        : ""
     );
     setSelectedFile(null);
     trackInteraction("click", "profile_cancel_edit");
