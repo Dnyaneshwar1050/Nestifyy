@@ -1,40 +1,32 @@
 import { User } from "../models/user.model.js";
 import { uploadImage, deleteImage } from "../utils/cloudinary.js";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import fs from "fs"
+import fs from "fs";
 
 const registerUser = async (req, res) => {
   try {
+    console.log("Request body:", req.body); // Debug
+    console.log("Request file:", req.file);
 
-    console.log('Request body:', req.body); // Debug
-    console.log('Request file:', req.file);
-
-    const {
-      name,
-      email,
-      password,
-      role,
-      phone,
-      gender,
-      age,
-      photo,
-      location
-    } = req.body;
-
+    const { name, email, password, role, phone, gender, age, photo, location } =
+      req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ message: "Name, email, and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Name, email, and password are required" });
     }
 
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: 'User already exists' });
+    if (existingUser)
+      return res.status(400).json({ message: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    let photoUrl = '';
+    let photoUrl = "";
     if (req.file) {
-      console.log('Uploading file:', req.file);
+      console.log("Uploading file:", req.file);
       try {
         photoUrl = await uploadImage(req.file);
       } catch (error) {
@@ -42,46 +34,58 @@ const registerUser = async (req, res) => {
       }
     }
 
-    const user = new User ({
+    const user = new User({
       name,
       email,
-      password:hashedPassword,
-      role: role || 'user',
-      age:Number(age),
+      password: hashedPassword,
+      role: role || "user",
+      age: Number(age),
       phone,
       location,
       gender,
-      photo:photoUrl,
+      photo: photoUrl,
     });
     await user.save();
 
-    res.status(201).json({ user: { id: user._id, name, email, photo: photoUrl, phone, age, location, gender } });
-
+    res.status(201).json({
+      user: {
+        id: user._id,
+        name,
+        email,
+        photo: photoUrl,
+        phone,
+        age,
+        location,
+        gender,
+      },
+    });
   } catch (error) {
-    console.error('Register error:', error.message);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error("Register error:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     // Basic validation
     if (!email || !password) {
-      return res.status(400).json({ message: 'Please provide email and password' });
+      return res
+        .status(400)
+        .json({ message: "Please provide email and password" });
     }
-    
+
     // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
-    
+
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const token = jwt.sign(
@@ -89,97 +93,107 @@ const loginUser = async (req, res) => {
       process.env.JWT_SECRET || "1ba3d7872fad1fe2",
       { expiresIn: process.env.JWT_EXPIRATION || "1d" }
     );
-    
+
     // Return user without password
     const userResponse = user.toObject();
     delete userResponse.password;
-    
+
     res.status(200).json({
       user: userResponse,
       token,
-      message: 'Login successful'
+      message: "Login successful",
     });
   } catch (error) {
-    console.error('Error in loginUser:', error);
-    res.status(500).json({ message: 'Server error, please try again later',error: error.message });
+    console.error("Error in loginUser:", error);
+    res.status(500).json({
+      message: "Server error, please try again later",
+      error: error.message,
+    });
   }
 };
 
 const getUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    console.log('Fetching profile for userId:', userId);
-    const user = await User.findById(userId).select('-password');
-    
+    const user = await User.findById(userId).select("-password");
+
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
-    
+
     res.status(200).json(user);
   } catch (error) {
-    console.error('Error in getUserProfile:', error);
-    if (error.kind === 'ObjectId') {
-      return res.status(400).json({ message: 'Invalid user ID format' });
-    }
-    res.status(500).json({ message: 'Server error, please try again later', error: error.message });
+    console.error("Error in getUserProfile:", error);
+    res.status(500).json({ message: "Server error, please try again later" });
   }
 };
-// user.controller.js - updateUserProfile
+
 const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     const updateData = { ...req.body };
 
-    // Log incoming data for debugging
-    console.log('UpdateUserProfile - Received body:', req.body);
-    console.log('UpdateUserProfile - Received file:', req.file);
+    console.log("UpdateUserProfile - Received body:", req.body);
+    console.log("UpdateUserProfile - Received file:", req.file);
 
-    // Prevent updating protected fields for non-admins
+    // Find user
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
-    const isAdmin = user.role === 'admin' || user.role === 'super-admin'; // Adjust based on your roles
+
+    // Prevent updates to protected fields for non-admins
+    const isAdmin = user.role === "admin" || user.role === "super-admin";
     if (!isAdmin) {
       delete updateData.name;
       delete updateData.gender;
       delete updateData.age;
+      delete updateData._id;
+      delete updateData.createdAt;
+      delete updateData.updatedAt;
+      delete updateData.__v;
     }
 
-    // Parse nested fields if they exist
+    // Parse nested fields
     if (updateData.brokerInfo) {
       try {
         updateData.brokerInfo = JSON.parse(updateData.brokerInfo);
       } catch (error) {
-        console.error('Error parsing brokerInfo:', error);
-        return res.status(400).json({ message: 'Invalid brokerInfo format' });
+        return res
+          .status(400)
+          .json({ message: "Invalid brokerInfo format", error: error.message });
       }
     }
     if (updateData.preferences) {
       try {
         updateData.preferences = JSON.parse(updateData.preferences);
       } catch (error) {
-        console.error('Error parsing preferences:', error);
-        return res.status(400).json({ message: 'Invalid preferences format' });
+        return res
+          .status(400)
+          .json({
+            message: "Invalid preferences format",
+            error: error.message,
+          });
       }
     }
 
-    // Prevent password updates through this endpoint
+    // Prevent password updates
     delete updateData.password;
 
     // Handle photo upload
     if (req.file) {
       try {
         if (user.photo) {
-          const publicId = user.photo.split('/').pop().split('.')[0];
+          const publicId = user.photo.split("/").pop().split(".")[0];
           await deleteImage(publicId);
         }
-        const result = await uploadImage(req.file.path);
+        const result = await uploadImage(req.file);
         updateData.photo = result.secure_url;
-        fs.unlinkSync(req.file.path);
+        // No need for fs.unlinkSync here, as uploadImage handles cleanup
       } catch (error) {
-        console.error('Error uploading photo:', error);
-        return res.status(500).json({ message: 'Failed to upload photo', error: error.message });
+        return res
+          .status(500)
+          .json({ message: "Failed to upload photo", error: error.message });
       }
     }
 
@@ -188,39 +202,44 @@ const updateUserProfile = async (req, res) => {
       userId,
       { $set: updateData },
       { new: true, runValidators: true }
-    ).select('-password');
+    ).select("-password");
 
     if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found after update' });
+      return res.status(404).json({ message: "User not found after update" });
     }
 
     res.status(200).json({
       user: updatedUser,
-      message: 'Profile updated successfully'
+      message: "Profile updated successfully",
     });
   } catch (error) {
-    console.error('Error in updateUserProfile:', error);
-    res.status(500).json({ message: 'Server error, please try again later', error: error.message });
+    console.error("Error in updateUserProfile:", error);
+    res
+      .status(500)
+      .json({
+        message: "Server error, please try again later",
+        error: error.message,
+      });
   }
 };
 const getUserById = async (req, res) => {
   try {
     const userId = req.params.id;
-    const user = await User.findById(userId).select('-password');
-    
+    const user = await User.findById(userId).select("-password");
+
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
-    
+
     res.status(200).json(user);
   } catch (error) {
-    console.error('Error in getUserById:', error);
-    
-    if (error.kind === 'ObjectId') {
-      return res.status(400).json({ message: 'Invalid user ID format' });
+    console.error("Error in getUserById:", error);
+
+    if (error.kind === "ObjectId") {
+      return res.status(400).json({ message: "Invalid user ID format" });
     }
-    
-    res.status(500).json({ message: 'Server error, please try again later' });
+
+    res.status(500).json({ message: "Server error, please try again later" });
   }
 };
 
@@ -229,82 +248,99 @@ const updateUser = async (req, res) => {
     // Verify admin status
     const requestingUserId = req.user.id;
     const requestingUser = await User.findById(requestingUserId);
-    
+
     if (!requestingUser || !requestingUser.isAdmin) {
-      return res.status(403).json({ message: 'Only admins can modify user data' });
+      return res
+        .status(403)
+        .json({ message: "Only admins can modify user data" });
     }
-    
+
     const userId = req.params.id;
     const updateData = { ...req.body };
-    
+
     // If password is provided, hash it
     if (updateData.password) {
       const salt = await bcrypt.genSalt(10);
       updateData.password = await bcrypt.hash(updateData.password, salt);
     }
-    
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
       { new: true }
-    ).select('-password');
-    
+    ).select("-password");
+
     if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
-    
+
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.error('Error in updateUser:', error);
-    
-    if (error.kind === 'ObjectId') {
-      return res.status(400).json({ message: 'Invalid user ID format' });
+    console.error("Error in updateUser:", error);
+
+    if (error.kind === "ObjectId") {
+      return res.status(400).json({ message: "Invalid user ID format" });
     }
-    
-    res.status(500).json({ message: 'Server error, please try again later', error: error.message });
+
+    res.status(500).json({
+      message: "Server error, please try again later",
+      error: error.message,
+    });
   }
 };
 
-const   deleteUser = async (req, res) => {
+const deleteUser = async (req, res) => {
   try {
     // Verify admin status
     const requestingUserId = req.user.id;
     const requestingUser = await User.findById(requestingUserId);
-    
+
     if (!requestingUser || !requestingUser.isAdmin) {
-      return res.status(403).json({ message: 'Only admins can delete users' });
+      return res.status(403).json({ message: "Only admins can delete users" });
     }
-    
+
     const userId = req.params.id;
-    
+
     // Don't allow admins to delete themselves
     if (userId === requestingUserId) {
-      return res.status(400).json({ message: 'You cannot delete your own account' });
+      return res
+        .status(400)
+        .json({ message: "You cannot delete your own account" });
     }
-    
+
     const deletedUser = await User.findByIdAndDelete(userId);
-    
+
     if (!deletedUser) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
-    
+
     // If user had a photo, delete it from storage
     if (deletedUser.photo) {
-      const publicId = deletedUser.photo.split('/').pop().split('.')[0];
+      const publicId = deletedUser.photo.split("/").pop().split(".")[0];
       await deleteImage(publicId);
     }
-    
-    res.status(200).json({ message: 'User deleted successfully' });
+
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-    console.error('Error in deleteUser:', error);
-    
-    if (error.kind === 'ObjectId') {
-      return res.status(400).json({ message: 'Invalid user ID format' });
+    console.error("Error in deleteUser:", error);
+
+    if (error.kind === "ObjectId") {
+      return res.status(400).json({ message: "Invalid user ID format" });
     }
-    
-    res.status(500).json({ message: 'Server error, please try again later',error: error.message });
+
+    res.status(500).json({
+      message: "Server error, please try again later",
+      error: error.message,
+    });
   }
 };
 
-
-export { registerUser, loginUser, updateUserProfile, deleteUser, updateUser, getUserProfile, getUserById };
+export {
+  registerUser,
+  loginUser,
+  updateUserProfile,
+  deleteUser,
+  updateUser,
+  getUserProfile,
+  getUserById,
+};

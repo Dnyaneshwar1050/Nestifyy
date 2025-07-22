@@ -160,7 +160,7 @@ const ProfilePage = () => {
       [section]: !prev[section],
     }));
   };
-  // ProfilePage.jsx - handleSave
+
   const handleSave = async () => {
     setSaveLoading(true);
     setError("");
@@ -172,17 +172,19 @@ const ProfilePage = () => {
       }
 
       const formData = new FormData();
-      const editableFields = { ...editForm };
-      // Exclude non-editable fields
-      delete editableFields.name;
-      delete editableFields.gender;
-      delete editableFields.age;
+      const editableFields = {
+        email: editForm.email,
+        phone: editForm.phone,
+        location: editForm.location,
+        brokerInfo: editForm.brokerInfo || {},
+        preferences: editForm.preferences || {},
+      };
 
       Object.keys(editableFields).forEach((key) => {
         if (editableFields[key] !== null && editableFields[key] !== undefined) {
           if (key === "brokerInfo" || key === "preferences") {
             formData.append(key, JSON.stringify(editableFields[key]));
-          } else if (key !== "photo") {
+          } else {
             formData.append(key, editableFields[key]);
           }
         }
