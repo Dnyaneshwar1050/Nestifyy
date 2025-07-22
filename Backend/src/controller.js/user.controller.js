@@ -23,9 +23,11 @@ const registerUser = async (req, res) => {
     } = req.body;
 
     if (!name || !email || !password || !phone || !age) {
-      return res.status(400).json({
-        message: "Name, email, password, phone, and age are required",
-      });
+      return res
+        .status(400)
+        .json({
+          message: "Name, email, password, phone, and age are required",
+        });
     }
 
     const existingUser = await User.findOne({ email });
@@ -100,13 +102,13 @@ const loginUser = async (req, res) => {
     }
 
     if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET is not defined in environment variables");
-    }
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRATION || "1d" }
-    );
+  throw new Error("JWT_SECRET is not defined in environment variables");
+}
+const token = jwt.sign(
+  { id: user._id, role: user.role },
+  process.env.JWT_SECRET,
+  { expiresIn: process.env.JWT_EXPIRATION || "1d" }
+);
 
     const userResponse = user.toObject();
     delete userResponse.password;
@@ -207,103 +209,86 @@ const getUserById = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
+    // Verify admin status
     const requestingUserId = req.user.id;
     const requestingUser = await User.findById(requestingUserId);
-
-    if (
-      !requestingUser ||
-      !["admin", "super-admin"].includes(requestingUser.role)
-    ) {
-      return res
-        .status(403)
-        .json({ message: "Only admins can modify user data" });
+    
+    if (!requestingUser || !requestingUser.isAdmin) {
+      return res.status(403).json({ message: 'Only admins can modify user data' });
     }
-
+    
     const userId = req.params.id;
     const updateData = { ...req.body };
-
+    
+    // If password is provided, hash it
     if (updateData.password) {
       const salt = await bcrypt.genSalt(10);
       updateData.password = await bcrypt.hash(updateData.password, salt);
     }
-
+    
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
       { new: true }
-    ).select("-password");
-
+    ).select('-password');
+    
     if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
-
+    
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.error("Error in updateUser:", error);
-
-    if (error.kind === "ObjectId") {
-      return res.status(400).json({ message: "Invalid user ID format" });
+    console.error('Error in updateUser:', error);
+    
+    if (error.kind === 'ObjectId') {
+      return res.status(400).json({ message: 'Invalid user ID format' });
     }
-
-    res.status(500).json({
-      message: "Server error, please try again later",
-      error: error.message,
-    });
+    
+    res.status(500).json({ message: 'Server error, please try again later' });
   }
 };
 
 const deleteUser = async (req, res) => {
   try {
+    // Verify admin status
     const requestingUserId = req.user.id;
     const requestingUser = await User.findById(requestingUserId);
-
-    if (
-      !requestingUser ||
-      !["admin", "super-admin"].includes(requestingUser.role)
-    ) {
-      return res.status(403).json({ message: "Only admins can delete users" });
+    
+    if (!requestingUser || !requestingUser.isAdmin) {
+      return res.status(403).json({ message: 'Only admins can delete users' });
     }
-
+    
     const userId = req.params.id;
-
+    
+    // Don't allow admins to delete themselves
     if (userId === requestingUserId) {
-      return res
-        .status(400)
-        .json({ message: "You cannot delete your own account" });
+      return res.status(400).json({ message: 'You cannot delete your own account' });
     }
-
+    
     const deletedUser = await User.findByIdAndDelete(userId);
-
+    
     if (!deletedUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
-
-    if (
-      deletedUser.photo &&
-      deletedUser.photo.startsWith("https://res.cloudinary.com/")
-    ) {
-      const publicIdMatch = deletedUser.photo.match(
-        /\/v\d+\/(.+?)\.(jpg|jpeg|png|gif)$/i
-      );
-      if (publicIdMatch && publicIdMatch[1]) {
-        await deleteImage(publicIdMatch[1]);
-      }
+    
+    // If user had a photo, delete it from storage
+    if (deletedUser.photo) {
+      const publicId = deletedUser.photo.split('/').pop().split('.')[0];
+      await deleteImage(publicId);
     }
-
-    res.status(200).json({ message: "User deleted successfully" });
+    
+    res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
-    console.error("Error in deleteUser:", error);
-
-    if (error.kind === "ObjectId") {
-      return res.status(400).json({ message: "Invalid user ID format" });
+    console.error('Error in deleteUser:', error);
+    
+    if (error.kind === 'ObjectId') {
+      return res.status(400).json({ message: 'Invalid user ID format' });
     }
-
-    res.status(500).json({
-      message: "Server error, please try again later",
-      error: error.message,
-    });
+    
+    res.status(500).json({ message: 'Server error, please try again later' });
   }
 };
+
 
 export {
   registerUser,
