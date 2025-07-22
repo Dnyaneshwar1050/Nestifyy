@@ -3,10 +3,6 @@ import DBConection from './db/db.js';
 import { app } from './app.js';
 
 
-dotenv.config({
-  path: './.env' 
-});
-
 const uploadDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
