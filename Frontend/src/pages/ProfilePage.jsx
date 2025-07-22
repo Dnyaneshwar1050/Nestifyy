@@ -138,8 +138,8 @@ const ProfilePage = () => {
       setError("Please enter a valid email address");
       return;
     }
-    if (field === "phone" && !/^\+?\d{10,15}$/.test(value)) {
-      setError("Please enter a valid phone number (10-15 digits)");
+    if (field === "phone" && !/^\+?\d{9,20}$/.test(value)) {
+      setError("Please enter a valid phone number (9-20 digits)");
       return;
     }
     if (field === "age" && (isNaN(value) || value < 18 || value > 120)) {
@@ -579,7 +579,7 @@ const ProfilePage = () => {
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                      {/* <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
                           <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
                           <span className="text-black font-medium w-24">
@@ -601,7 +601,7 @@ const ProfilePage = () => {
                             {user.profession || "Not specified"}
                           </span>
                         )}
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                   <div className="bg-cream rounded-xl p-4 border border-warm-gray">

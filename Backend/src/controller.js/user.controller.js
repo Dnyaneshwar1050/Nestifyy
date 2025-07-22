@@ -44,7 +44,6 @@ const registerUser = async (req, res) => {
       location,
       photo: photoUrl,
       gender,
-      profession: profession || "",
     });
     await user.save();
 
@@ -58,7 +57,7 @@ const registerUser = async (req, res) => {
         age,
         location,
         gender,
-        profession,
+
       },
     });
   } catch (error) {
