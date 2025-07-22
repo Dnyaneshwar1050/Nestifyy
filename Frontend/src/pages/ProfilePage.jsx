@@ -106,6 +106,15 @@ const ProfilePage = () => {
     }
   }, [id, isAuthenticated, navigate, trackInteraction]);
 
+  // Clean up preview URL on component unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl && selectedFile) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl, selectedFile]);
+
   // Handle file selection for photo upload
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -225,22 +234,21 @@ const ProfilePage = () => {
         }
       );
 
-      setUser(response.data.user);
-      setEditForm(response.data.user);
+      const updatedUser = response.data.user;
+      setUser(updatedUser);
+      setEditForm(updatedUser);
       setIsEditing(false);
       setSuccess("Profile updated successfully!");
       trackInteraction("profile_management", "profile_update_success");
-      if (previewUrl && selectedFile) {
-        URL.revokeObjectURL(previewUrl);
+
+      // Update photo display
+      if (selectedFile) {
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl); // Clean up old preview URL
+        }
+        setPreviewUrl(updatedUser.photo || ""); // Use Cloudinary URL from backend
+        setSelectedFile(null);
       }
-      setPreviewUrl(
-        response.data.user.photo
-          ? response.data.user.photo.startsWith("http")
-            ? response.data.user.photo
-            : `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
-          : ""
-      );
-      setSelectedFile(null);
     } catch (err) {
       console.error("Profile update error:", err);
       setError(
@@ -249,6 +257,11 @@ const ProfilePage = () => {
       trackInteraction("profile_management", "profile_update_failure", {
         error: err.response?.data?.message || err.message,
       });
+      // Revert to original photo if update fails
+      if (selectedFile && user?.photo) {
+        setPreviewUrl(user.photo);
+        setSelectedFile(null);
+      }
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
         navigate("/login");
@@ -264,12 +277,10 @@ const ProfilePage = () => {
     setError("");
     setFieldErrors({});
     setSuccess("");
-    if (previewUrl) {
+    if (previewUrl && selectedFile) {
       URL.revokeObjectURL(previewUrl);
     }
-    setPreviewUrl(
-      user?.photo ? `https://nestifyy-my3u.onrender.com/${user.photo}` : ""
-    );
+    setPreviewUrl(user?.photo || "");
     setSelectedFile(null);
     trackInteraction("click", "profile_cancel_edit");
   };
@@ -617,7 +628,7 @@ const ProfilePage = () => {
                         {isEditing ? (
                           <div className="flex-1 relative">
                             <input
-                              type="text" // Changed from 'tel' to 'text' to allow any input
+                              type="text"
                               value={editForm.phone || ""}
                               onChange={(e) =>
                                 handleInputChange("phone", e.target.value)
