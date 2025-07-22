@@ -46,7 +46,6 @@ const ProfilePage = () => {
   const [requestLoading, setRequestLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch user profile on component mount
   useEffect(() => {
     const fetchUser = async () => {
       setLoading(true);
@@ -54,6 +53,7 @@ const ProfilePage = () => {
       setSuccess("");
       try {
         const token = localStorage.getItem("token");
+        console.log("Fetching profile with token:", token);
         if (!token && !id) {
           throw new Error("No authentication token found");
         }
@@ -70,7 +70,11 @@ const ProfilePage = () => {
 
         const userData = response.data.user || response.data;
         setUser(userData);
-        setEditForm(userData);
+        setEditForm({
+          ...userData,
+          brokerInfo: userData.brokerInfo || {},
+          preferences: userData.preferences || {},
+        });
         if (userData.photo) {
           setPreviewUrl(userData.photo);
         }
@@ -141,15 +145,6 @@ const ProfilePage = () => {
     }));
     setError("");
   };
-
-  // Handle nested field changes
-  const handleNestedInputChange = (parentField, field, value) => {
-    setEditForm((prev) => ({
-      ...prev,
-      [parentField]: { ...prev[parentField], [field]: value },
-    }));
-  };
-
   // Handle room request form changes
   const handleRoomRequestChange = (field, value) => {
     setRoomRequestForm((prev) => ({
@@ -165,8 +160,6 @@ const ProfilePage = () => {
       [section]: !prev[section],
     }));
   };
-
-  // Save profile changes
   // ProfilePage.jsx - handleSave
   const handleSave = async () => {
     setSaveLoading(true);
@@ -180,7 +173,7 @@ const ProfilePage = () => {
 
       const formData = new FormData();
       const editableFields = { ...editForm };
-      // Remove non-editable fields
+      // Exclude non-editable fields
       delete editableFields.name;
       delete editableFields.gender;
       delete editableFields.age;
@@ -196,6 +189,11 @@ const ProfilePage = () => {
       });
       if (selectedFile) {
         formData.append("photo", selectedFile);
+      }
+
+      // Log FormData for debugging
+      for (let [key, value] of formData.entries()) {
+        console.log(`FormData - ${key}:`, value);
       }
 
       const response = await axios.put(
@@ -227,11 +225,13 @@ const ProfilePage = () => {
       setSelectedFile(null);
     } catch (err) {
       console.error("Profile update error:", err);
-      setError(
-        err.response?.data?.message || err.message || "Failed to update profile"
-      );
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to update profile";
+      setError(errorMessage);
       trackInteraction("profile_management", "profile_update_failure", {
-        error: err.response?.data?.message || err.message,
+        error: errorMessage,
       });
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
@@ -502,7 +502,7 @@ const ProfilePage = () => {
                       <User className="w-4 h-4 mr-2" />
                       Basic Details
                     </h3>
-                  
+
                     <div className="space-y-3">
                       <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">

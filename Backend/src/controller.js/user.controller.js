@@ -108,6 +108,7 @@ const loginUser = async (req, res) => {
 const getUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
+    console.log('Fetching profile for userId:', userId);
     const user = await User.findById(userId).select('-password');
     
     if (!user) {
@@ -117,55 +118,80 @@ const getUserProfile = async (req, res) => {
     res.status(200).json(user);
   } catch (error) {
     console.error('Error in getUserProfile:', error);
-    res.status(500).json({ message: 'Server error, please try again later' });
+    if (error.kind === 'ObjectId') {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    res.status(500).json({ message: 'Server error, please try again later', error: error.message });
   }
 };
-
+// user.controller.js - updateUserProfile
 const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     const updateData = { ...req.body };
 
-    // Check if user is admin
-    const user = await User.findById(userId);
-    const isAdmin = user && user.role === 'admin'; // Adjust based on your role system
+    // Log incoming data for debugging
+    console.log('UpdateUserProfile - Received body:', req.body);
+    console.log('UpdateUserProfile - Received file:', req.file);
 
-    // Restrict non-admin users from updating certain fields
+    // Prevent updating protected fields for non-admins
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const isAdmin = user.role === 'admin' || user.role === 'super-admin'; // Adjust based on your roles
     if (!isAdmin) {
       delete updateData.name;
       delete updateData.gender;
       delete updateData.age;
     }
 
-    // Parse JSON strings for nested fields if they exist
+    // Parse nested fields if they exist
     if (updateData.brokerInfo) {
-      updateData.brokerInfo = JSON.parse(updateData.brokerInfo);
+      try {
+        updateData.brokerInfo = JSON.parse(updateData.brokerInfo);
+      } catch (error) {
+        console.error('Error parsing brokerInfo:', error);
+        return res.status(400).json({ message: 'Invalid brokerInfo format' });
+      }
     }
     if (updateData.preferences) {
-      updateData.preferences = JSON.parse(updateData.preferences);
+      try {
+        updateData.preferences = JSON.parse(updateData.preferences);
+      } catch (error) {
+        console.error('Error parsing preferences:', error);
+        return res.status(400).json({ message: 'Invalid preferences format' });
+      }
     }
 
+    // Prevent password updates through this endpoint
     delete updateData.password;
 
-    // Handle photo upload if present
+    // Handle photo upload
     if (req.file) {
-      if (user && user.photo) {
-        const publicId = user.photo.split('/').pop().split('.')[0];
-        await deleteImage(publicId);
+      try {
+        if (user.photo) {
+          const publicId = user.photo.split('/').pop().split('.')[0];
+          await deleteImage(publicId);
+        }
+        const result = await uploadImage(req.file.path);
+        updateData.photo = result.secure_url;
+        fs.unlinkSync(req.file.path);
+      } catch (error) {
+        console.error('Error uploading photo:', error);
+        return res.status(500).json({ message: 'Failed to upload photo', error: error.message });
       }
-      const result = await uploadImage(req.file.path);
-      updateData.photo = result.secure_url;
-      fs.unlinkSync(req.file.path);
     }
 
+    // Update user
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
-      { new: true }
+      { new: true, runValidators: true }
     ).select('-password');
 
     if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'User not found after update' });
     }
 
     res.status(200).json({
