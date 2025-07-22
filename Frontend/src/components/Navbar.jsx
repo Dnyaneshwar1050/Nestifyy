@@ -367,7 +367,25 @@ const Navbar = () => {
               </NavLink>
             )}
             {isAuthenticated && (
-              <>
+              <NavLink
+                to="/profile"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  trackInteraction("click", "mobile_nav_profile");
+                }}
+                className={({ isActive }) =>
+                  `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${
+                    isActive
+                      ? "text-blue-700 bg-blue-50 font-semibold"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-blue-700"
+                  }`
+                }
+              >
+                Profile
+              </NavLink>
+            )}
+            {isAuthenticated ? (
+              <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col space-y-2">
                 {userRole === "user" && (
                   <NavLink
                     to="/dashboard"
@@ -386,26 +404,6 @@ const Navbar = () => {
                     Dashboard
                   </NavLink>
                 )}
-                </>
-            )}
-            {isAuthenticated ? (
-              <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col space-y-2">
-                <NavLink
-                to="/profile"
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  trackInteraction("click", "mobile_nav_profile");
-                }}
-                className={({ isActive }) =>
-                  `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${
-                    isActive
-                      ? "text-blue-700 bg-blue-50 font-semibold"
-                      : "text-gray-700 hover:bg-gray-50 hover:text-blue-700"
-                  }`
-                }
-              >
-                Profile
-              </NavLink>
                 {isAdmin && (
                   <NavLink
                     to="/admin-panel"
