@@ -125,41 +125,56 @@ const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     const updateData = { ...req.body };
-    delete updateData.password; 
-    
+
+    // Check if user is admin
+    const user = await User.findById(userId);
+    const isAdmin = user && user.role === 'admin'; // Adjust based on your role system
+
+    // Restrict non-admin users from updating certain fields
+    if (!isAdmin) {
+      delete updateData.name;
+      delete updateData.gender;
+      delete updateData.age;
+    }
+
+    // Parse JSON strings for nested fields if they exist
+    if (updateData.brokerInfo) {
+      updateData.brokerInfo = JSON.parse(updateData.brokerInfo);
+    }
+    if (updateData.preferences) {
+      updateData.preferences = JSON.parse(updateData.preferences);
+    }
+
+    delete updateData.password;
+
     // Handle photo upload if present
     if (req.file) {
-      // Delete old photo if exists
-      const user = await User.findById(userId);
       if (user && user.photo) {
-        // Extract public_id from the URL (assuming Cloudinary)
         const publicId = user.photo.split('/').pop().split('.')[0];
         await deleteImage(publicId);
       }
-      
       const result = await uploadImage(req.file.path);
       updateData.photo = result.secure_url;
-      // Remove the temp file
       fs.unlinkSync(req.file.path);
     }
-    
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
       { new: true }
     ).select('-password');
-    
+
     if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     res.status(200).json({
       user: updatedUser,
       message: 'Profile updated successfully'
     });
   } catch (error) {
     console.error('Error in updateUserProfile:', error);
-    res.status(500).json({ message: 'Server error, please try again later',error: error.message });
+    res.status(500).json({ message: 'Server error, please try again later', error: error.message });
   }
 };
 const getUserById = async (req, res) => {

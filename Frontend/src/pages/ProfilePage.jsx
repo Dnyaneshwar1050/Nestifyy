@@ -167,7 +167,8 @@ const ProfilePage = () => {
   };
 
   // Save profile changes
-  const handleSave = async () => {
+  // ProfilePage.jsx - handleSave
+const handleSave = async () => {
   setSaveLoading(true);
   setError("");
   setSuccess("");
@@ -178,22 +179,23 @@ const ProfilePage = () => {
     }
 
     const formData = new FormData();
-    Object.keys(editForm).forEach((key) => {
-      if (editForm[key] !== null && editForm[key] !== undefined) {
+    const editableFields = { ...editForm };
+    // Remove non-editable fields
+    delete editableFields.name;
+    delete editableFields.gender;
+    delete editableFields.age;
+
+    Object.keys(editableFields).forEach((key) => {
+      if (editableFields[key] !== null && editableFields[key] !== undefined) {
         if (key === "brokerInfo" || key === "preferences") {
-          formData.append(key, JSON.stringify(editForm[key]));
+          formData.append(key, JSON.stringify(editableFields[key]));
         } else if (key !== "photo") {
-          formData.append(key, editForm[key]);
+          formData.append(key, editableFields[key]);
         }
       }
     });
     if (selectedFile) {
       formData.append("photo", selectedFile);
-    }
-
-    // Log FormData contents for debugging
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
     }
 
     const response = await axios.put(
@@ -239,61 +241,6 @@ const ProfilePage = () => {
     setSaveLoading(false);
   }
 };
-
-
-  // Handle room request submission
-  const handleRoomRequestSubmit = async () => {
-    setRequestLoading(true);
-    setError("");
-    setSuccess("");
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
-      const { budget, location } = roomRequestForm;
-      if (!budget || !location) {
-        throw new Error("Budget and location are required");
-      }
-
-      const response = await axios.post(
-        `https://nestifyy-my3u.onrender.com/api/room-request`,
-        {
-          budget,
-          location,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      setSuccess("Room request submitted successfully!");
-      setRoomRequestForm({ budget: "", location: "" });
-      toggleSection("roomRequest");
-      trackInteraction("room_request", "submit_success");
-    } catch (err) {
-      console.error("Room request error:", err);
-      const errorMessage =
-        err.response?.data?.message ||
-        err.message ||
-        "Failed to submit room request";
-      setError(errorMessage);
-      trackInteraction("room_request", "submit_failure", {
-        error: errorMessage,
-      });
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        navigate("/login");
-      }
-    } finally {
-      setRequestLoading(false);
-    }
-  };
-
   // Cancel editing
   const handleCancel = () => {
     setIsEditing(false);
@@ -555,59 +502,31 @@ const ProfilePage = () => {
                       <User className="w-4 h-4 mr-2" />
                       Basic Details
                     </h3>
-                    <div className="space-y-3">
-                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
-                        <div className="flex items-center mb-2 sm:mb-0">
-                          <User className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
-                          <span className="text-black font-medium w-24">
-                            Gender:
-                          </span>
-                        </div>
-                        {isEditing ? (
-                          <select
-                            value={editForm.gender || ""}
-                            onChange={(e) =>
-                              handleInputChange("gender", e.target.value)
-                            }
-                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                          >
-                            <option value="">Select Gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        ) : (
-                          <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                            {user.gender || "Not specified"}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
-                        <div className="flex items-center mb-2 sm:mb-0">
-                          <GraduationCap className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
-                          <span className="text-black font-medium w-24">
-                            Age:
-                          </span>
-                        </div>
-                        {isEditing ? (
-                          <input
-                            type="number"
-                            value={editForm.age || ""}
-                            onChange={(e) =>
-                              handleInputChange("age", e.target.value)
-                            }
-                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                            placeholder="Enter age"
-                            min="1"
-                            max="120"
-                          />
-                        ) : (
-                          <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                            {user.age || "Not specified"}
-                          </span>
-                        )}
-                      </div>
-                      {/* <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                    // ProfilePage.jsx - Inside the "Basic Details" section
+<div className="space-y-3">
+  <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+    <div className="flex items-center mb-2 sm:mb-0">
+      <User className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
+      <span className="text-black font-medium w-24">
+        Gender:
+      </span>
+    </div>
+    <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+      {user.gender || "Not specified"}
+    </span>
+  </div>
+  <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+    <div className="flex items-center mb-2 sm:mb-0">
+      <GraduationCap className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
+      <span className="text-black font-medium w-24">
+        Age:
+      </span>
+    </div>
+    <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+      {user.age || "Not specified"}
+    </span>
+  </div>
+  {/* <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
                           <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
                           <span className="text-black font-medium w-24">
