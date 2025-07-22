@@ -44,15 +44,15 @@ const DashboardPage = () => {
       }
 
       // Fetch user-created properties
-      try {
-        const propertiesResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/property/my-properties', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setProperties(propertiesResponse.data.properties || []);
-      } catch (propErr) {
-        console.error('fetchUserData: Properties fetch error:', propErr);
-        setError(propErr.response?.data?.message || 'Failed to load properties. Please try again later.');
-      }
+      // try {
+      //   const propertiesResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/property/my-properties', {
+      //     headers: { Authorization: `Bearer ${token}` },
+      //   });
+      //   setProperties(propertiesResponse.data.properties || []);
+      // } catch (propErr) {
+      //   console.error('fetchUserData: Properties fetch error:', propErr);
+      //   setError(propErr.response?.data?.message || 'Failed to load properties. Please try again later.');
+      // }
 
       // Fetch user-created room requests
       try {
