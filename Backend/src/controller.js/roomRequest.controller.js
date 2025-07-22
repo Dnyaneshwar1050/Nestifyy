@@ -122,5 +122,48 @@ const searchRoomRequests = async (req, res) => {
   }
 };
 
+const getUserRoomRequests = async (req, res) => {
+  try {
+    const userId = req.user?._id || req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: No user ID found" });
+    }
 
-export { createRoomRequest, getAllRoomRequests, searchRoomRequests };
+    const roomRequests = await RoomRequest.find({ user: userId })
+      .populate("user", "name number gender photo")
+      .lean();
+
+    res.status(200).json(roomRequests);
+  } catch (error) {
+    console.error("Error fetching user room requests:", error);
+    res.status(500).json({
+      message: "Failed to fetch room requests",
+      error: error.message,
+    });
+  }
+};
+
+const deleteRoomRequest = async (req, res) => {
+  try {
+    const requestId = req.params.id;
+    const userId = req.user?._id || req.user?.id;
+
+    const roomRequest = await RoomRequest.findById(requestId);
+    if (!roomRequest) {
+      return res.status(404).json({ message: "Room request not found" });
+    }
+
+    if (roomRequest.user.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Unauthorized to delete this room request" });
+    }
+
+    await RoomRequest.findByIdAndDelete(requestId);
+
+    res.status(200).json({ message: "Room request deleted successfully" });
+  } catch (error) {
+    console.error("Error in deleteRoomRequest:", error);
+    res.status(500).json({ message: "Server error, please try again later" });
+  }
+};
+
+export { createRoomRequest, getAllRoomRequests, searchRoomRequests, getUserRoomRequests, deleteRoomRequest };
