@@ -8,10 +8,7 @@ const createproperty = async (req, res) => {
     const {
       title,
       description,
-      // address,
       city,
-      // district,
-      // zipcode,
       location,
       rent,
       propertyType,
@@ -24,12 +21,10 @@ const createproperty = async (req, res) => {
       allowBroker,
     } = req.body;
 
-    // Log incoming request for debugging
     console.log("createproperty: Received body:", req.body);
     console.log("createproperty: Received files:", req.files);
     console.log("createproperty: req.user:", req.user);
 
-    // Verify authenticated user
     const ownerId = req.user?._id || req.user?.id;
     if (!ownerId) {
       if (req.files && req.files.length > 0) {
@@ -40,13 +35,9 @@ const createproperty = async (req, res) => {
         .json({ message: "Unauthorized: No user ID found" });
     }
 
-    // Validate required fields
     if (
       !title ||
-      // !address ||
       !city ||
-      // !district ||
-      // !zipcode ||
       !location ||
       !rent ||
       !deposit ||
@@ -63,20 +54,15 @@ const createproperty = async (req, res) => {
       });
     }
 
-    // Upload images to Cloudinary
     let imageUrls = [];
     if (req.files && req.files.length > 0) {
       imageUrls = await Promise.all(req.files.map((file) => uploadImage(file)));
     }
 
-    // Create new property
     const newProperty = new Property({
       title,
       description,
-      // address,
       city,
-      // district,
-      // zipcode: Number(zipcode),
       location,
       rent: Number(rent),
       propertyType,
@@ -91,7 +77,6 @@ const createproperty = async (req, res) => {
       owner: ownerId,
     });
 
-    // Save to MongoDB
     await newProperty.save();
     console.log("createproperty: Property saved:", newProperty._id);
 
@@ -134,7 +119,6 @@ const updateProperty = async (req, res) => {
         .json({ message: "Unauthorized to update this property" });
     }
 
-    // Remove old images from Cloudinary if new images are provided
     if (imageUrls.length > 0 && propertyToUpdate.imageUrls.length > 0) {
       await Promise.all(
         propertyToUpdate.imageUrls.map((imageUrl) => {
@@ -183,7 +167,6 @@ const deleteProperty = async (req, res) => {
         .json({ message: "Unauthorized to delete this property" });
     }
 
-    // Delete images from Cloudinary
     if (property.imageUrls && property.imageUrls.length > 0) {
       await Promise.all(
         property.imageUrls.map((imageUrl) => {
@@ -231,7 +214,7 @@ const getPropertyById = async (req, res) => {
       owner: {
         name: property.owner?.name || 'Unknown',
         email: property.owner?.email || 'Unknown',
-        phone: property.owner?.phone || '', // Ensure phone is always included
+        phone: property.owner?.phone || '',
       },
     };
     res.status(200).json({ property: sanitizedProperty });
@@ -246,7 +229,6 @@ const searchProperties = async (req, res) => {
     const { search, propertyType, priceRange, sortBy } = req.query;
     let query = {};
 
-    // Validate query parameters
     if (search && typeof search !== "string") {
       return res
         .status(400)
@@ -263,17 +245,6 @@ const searchProperties = async (req, res) => {
         .json({ message: "PriceRange parameter must be a string" });
     }
 
-    // Search query
-    if (search && search.trim()) {
-      const escapedSearch = search
-        .trim()
-        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      query.$or = [
-        { city: { $regex: escapedSearch, $options: "i" } }, 
-        { propertyType: { $regex: escapedSearch, $options: "i" } },
-        { location: { $regex: escapedSearch, $options: "i" } },
-      ];
-    }
     if (search && search.trim()) {
       const escapedSearch = search
         .trim()
@@ -284,12 +255,11 @@ const searchProperties = async (req, res) => {
         { location: { $regex: escapedSearch, $options: "i" } },
       ];
     }
-    // Property type filter
+
     if (propertyType && propertyType.trim()) {
       query.propertyType = { $regex: propertyType.trim(), $options: "i" };
     }
 
-    // Price range filter
     if (priceRange && priceRange.trim()) {
       if (priceRange.includes("-")) {
         const [minPrice, maxPrice] = priceRange
@@ -314,19 +284,16 @@ const searchProperties = async (req, res) => {
       }
     }
 
-    // Execute query
     let findQuery = Property.find(query)
       .populate({ path: "owner", select: "name email", strictPopulate: false })
       .lean();
 
-    // Apply limit only if no search query
     if (!search || !search.trim()) {
       findQuery = findQuery.limit(4);
     }
 
     let properties = await findQuery;
 
-    // Apply sorting
     switch (sortBy) {
       case "rent-low":
         properties = properties.sort((a, b) => a.rent - b.rent);
@@ -368,16 +335,30 @@ const searchProperties = async (req, res) => {
     });
   }
 };
+
 const getMyProperties = async (req, res) => {
   try {
     const ownerId = req.user?._id || req.user?.id;
+    console.log("getMyProperties: ownerId:", ownerId);
+
     if (!ownerId) {
+      console.error("getMyProperties: No user ID found in req.user:", req.user);
       return res.status(401).json({ message: "Unauthorized: No user ID found" });
     }
 
     const properties = await Property.find({ owner: ownerId })
       .populate("owner", "name email phone")
-      .lean();
+      .lean()
+      .catch((err) => {
+        console.error("getMyProperties: MongoDB query error:", {
+          message: err.message,
+          stack: err.stack,
+          ownerId,
+        });
+        throw new Error("Database query failed");
+      });
+
+    console.log("getMyProperties: Fetched properties:", properties.length);
 
     const sanitizedProperties = properties.map((property) => ({
       ...property,
@@ -387,7 +368,12 @@ const getMyProperties = async (req, res) => {
 
     res.status(200).json({ properties: sanitizedProperties });
   } catch (error) {
-    console.error("Error fetching my properties:", error);
+    console.error("getMyProperties: Error:", {
+      message: error.message,
+      stack: error.stack,
+      ownerId: req.user?._id || req.user?.id,
+      timestamp: new Date().toISOString(),
+    });
     res.status(500).json({
       message: "Failed to fetch properties",
       error: error.message,
@@ -402,5 +388,5 @@ export {
   getAllProperties,
   getPropertyById,
   searchProperties,
-  getMyProperties
+  getMyProperties,
 };

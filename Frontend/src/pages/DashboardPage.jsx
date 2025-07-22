@@ -44,21 +44,34 @@ const DashboardPage = () => {
       }
 
       // Fetch user-created properties
-      const propertiesResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/property/my-properties', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setProperties(propertiesResponse.data.properties || []);
+      try {
+        const propertiesResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/property/my-properties', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProperties(propertiesResponse.data.properties || []);
+      } catch (propErr) {
+        console.error('fetchUserData: Properties fetch error:', propErr);
+        setError(propErr.response?.data?.message || 'Failed to load properties. Please try again later.');
+      }
 
       // Fetch user-created room requests
-      const roomRequestsResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/room-request/user', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setRoomRequests(roomRequestsResponse.data || []);
+      try {
+        const roomRequestsResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/room-request/user', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setRoomRequests(roomRequestsResponse.data || []);
+      } catch (reqErr) {
+        console.error('fetchUserData: Room requests fetch error:', reqErr);
+        if (!error) {
+          setError(reqErr.response?.data?.message || 'Failed to load room requests. Please try again later.');
+        }
+      }
 
       setLoading(false);
       trackInteraction('data_fetch', 'dashboard_user_data_success');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load dashboard data.');
+      console.error('fetchUserData: General error:', err);
+      setError(err.response?.data?.message || 'Failed to load dashboard data. Please check your connection or try again later.');
       setLoading(false);
       trackInteraction('data_fetch', 'dashboard_failure', { error: err.message });
     }
