@@ -6,10 +6,10 @@ import fs from "fs";
 
 const registerUser = async (req, res) => {
   try {
-    console.log("Request body:", req.body); // Debug
+    console.log("Request body:", req.body);
     console.log("Request file:", req.file);
 
-    const { name, email, password, role, phone, gender, age, photo, location } =
+    const { name, email, password, role, phone, gender, age, photo, location, profession } =
       req.body;
 
     if (!name || !email || !password) {
@@ -42,8 +42,9 @@ const registerUser = async (req, res) => {
       age: Number(age),
       phone,
       location,
-      gender,
       photo: photoUrl,
+      gender,
+      profession: profession || "",
     });
     await user.save();
 
@@ -57,6 +58,7 @@ const registerUser = async (req, res) => {
         age,
         location,
         gender,
+        profession,
       },
     });
   } catch (error) {
@@ -69,20 +71,17 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Basic validation
     if (!email || !password) {
       return res
         .status(400)
         .json({ message: "Please provide email and password" });
     }
 
-    // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -94,7 +93,6 @@ const loginUser = async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRATION || "1d" }
     );
 
-    // Return user without password
     const userResponse = user.toObject();
     delete userResponse.password;
 
@@ -111,6 +109,7 @@ const loginUser = async (req, res) => {
     });
   }
 };
+
 const getUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -135,23 +134,17 @@ const updateUserProfile = async (req, res) => {
     console.log('UpdateUserProfile - Received body:', req.body);
     console.log('UpdateUserProfile - Received file:', req.file);
 
-    // Find user
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Prevent updates to protected fields for non-admins
-    const isAdmin = user.role === 'admin' || user.role === 'super-admin';
-    if (!isAdmin) {
-      delete updateData.name;
-      delete updateData.gender;
-      delete updateData.age;
-      delete updateData._id;
-      delete updateData.createdAt;
-      delete updateData.updatedAt;
-      delete updateData.__v;
-    }
+    // Allow updates to all fields except password
+    delete updateData.password;
+    delete updateData._id;
+    delete updateData.createdAt;
+    delete updateData.updatedAt;
+    delete updateData.__v;
 
     // Parse nested fields
     if (updateData.brokerInfo) {
@@ -169,8 +162,19 @@ const updateUserProfile = async (req, res) => {
       }
     }
 
-    // Prevent password updates
-    delete updateData.password;
+    // Validate fields
+    if (updateData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updateData.email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+    if (updateData.phone && !/^\+?\d{10,15}$/.test(updateData.phone)) {
+      return res.status(400).json({ message: 'Invalid phone number format (10-15 digits)' });
+    }
+    if (updateData.age && (isNaN(updateData.age) || updateData.age < 18 || updateData.age > 120)) {
+      return res.status(400).json({ message: 'Age must be between 18 and 120' });
+    }
+    if (updateData.gender && !['Male', 'Female', 'Other'].includes(updateData.gender)) {
+      return res.status(400).json({ message: 'Invalid gender value' });
+    }
 
     // Handle photo upload
     if (req.file) {
@@ -188,7 +192,6 @@ const updateUserProfile = async (req, res) => {
       }
     }
 
-    // Update user
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
@@ -208,7 +211,9 @@ const updateUserProfile = async (req, res) => {
     console.error('Error in updateUserProfile:', error);
     res.status(500).json({ message: 'Server error, please try again later', error: error.message });
   }
-};const getUserById = async (req, res) => {
+};
+
+const getUserById = async (req, res) => {
   try {
     const userId = req.params.id;
     const user = await User.findById(userId).select("-password");
@@ -231,11 +236,10 @@ const updateUserProfile = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    // Verify admin status
     const requestingUserId = req.user.id;
     const requestingUser = await User.findById(requestingUserId);
 
-    if (!requestingUser || !requestingUser.isAdmin) {
+    if (!requestingUser || !['admin', 'super-admin'].includes(requestingUser.role)) {
       return res
         .status(403)
         .json({ message: "Only admins can modify user data" });
@@ -244,7 +248,6 @@ const updateUser = async (req, res) => {
     const userId = req.params.id;
     const updateData = { ...req.body };
 
-    // If password is provided, hash it
     if (updateData.password) {
       const salt = await bcrypt.genSalt(10);
       updateData.password = await bcrypt.hash(updateData.password, salt);
@@ -277,17 +280,15 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
-    // Verify admin status
     const requestingUserId = req.user.id;
     const requestingUser = await User.findById(requestingUserId);
 
-    if (!requestingUser || !requestingUser.isAdmin) {
+    if (!requestingUser || !['admin', 'super-admin'].includes(requestingUser.role)) {
       return res.status(403).json({ message: "Only admins can delete users" });
     }
 
     const userId = req.params.id;
 
-    // Don't allow admins to delete themselves
     if (userId === requestingUserId) {
       return res
         .status(400)
@@ -300,7 +301,6 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // If user had a photo, delete it from storage
     if (deletedUser.photo) {
       const publicId = deletedUser.photo.split("/").pop().split(".")[0];
       await deleteImage(publicId);

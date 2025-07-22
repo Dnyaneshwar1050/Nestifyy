@@ -37,7 +37,7 @@ const ProfilePage = () => {
   const [expandedSections, setExpandedSections] = useState({
     personal: true,
     roleSpecific: true,
-    roomRequest: false, // New state for room request section
+    roomRequest: false,
   });
   const [roomRequestForm, setRoomRequestForm] = useState({
     budget: "",
@@ -46,6 +46,7 @@ const ProfilePage = () => {
   const [requestLoading, setRequestLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Fetch user profile on component mount
   useEffect(() => {
     const fetchUser = async () => {
       setLoading(true);
@@ -53,7 +54,6 @@ const ProfilePage = () => {
       setSuccess("");
       try {
         const token = localStorage.getItem("token");
-        console.log("Fetching profile with token:", token);
         if (!token && !id) {
           throw new Error("No authentication token found");
         }
@@ -70,11 +70,7 @@ const ProfilePage = () => {
 
         const userData = response.data.user || response.data;
         setUser(userData);
-        setEditForm({
-          ...userData,
-          brokerInfo: userData.brokerInfo || {},
-          preferences: userData.preferences || {},
-        });
+        setEditForm(userData);
         if (userData.photo) {
           setPreviewUrl(userData.photo);
         }
@@ -113,12 +109,10 @@ const ProfilePage = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
       if (!file.type.match(/image\/(jpeg|png|gif)/)) {
         setError("Please select a valid image file (JPEG, PNG, or GIF)");
         return;
       }
-      // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
         setError("Image size should be less than 5MB");
         return;
@@ -133,10 +127,23 @@ const ProfilePage = () => {
       setError("No file selected");
     }
   };
-  // Handle form input changes
+
+  // Handle form input changes with validation
   const handleInputChange = (field, value) => {
     if (field === "location" && !value.trim()) {
       setError("Location cannot be empty");
+      return;
+    }
+    if (field === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    if (field === "phone" && !/^\+?\d{10,15}$/.test(value)) {
+      setError("Please enter a valid phone number (10-15 digits)");
+      return;
+    }
+    if (field === "age" && (isNaN(value) || value < 18 || value > 120)) {
+      setError("Please enter a valid age (18-120)");
       return;
     }
     setEditForm((prev) => ({
@@ -145,6 +152,15 @@ const ProfilePage = () => {
     }));
     setError("");
   };
+
+  // Handle nested field changes
+  const handleNestedInputChange = (parentField, field, value) => {
+    setEditForm((prev) => ({
+      ...prev,
+      [parentField]: { ...prev[parentField], [field]: value },
+    }));
+  };
+
   // Handle room request form changes
   const handleRoomRequestChange = (field, value) => {
     setRoomRequestForm((prev) => ({
@@ -161,70 +177,75 @@ const ProfilePage = () => {
     }));
   };
 
-useEffect(() => {
-  const fetchUser = async () => {
-    setLoading(true);
+  const handleSave = async () => {
+    setSaveLoading(true);
     setError("");
     setSuccess("");
     try {
       const token = localStorage.getItem("token");
-      console.log('Fetching profile with token:', token);
-      if (!token && !id) {
+      if (!token) {
         throw new Error("No authentication token found");
       }
 
-      const apiUrl = id
-        ? `https://nestifyy-my3u.onrender.com/api/user/${id}`
-        : `https://nestifyy-my3u.onrender.com/api/user/profile`;
-      const response = await axios.get(apiUrl, {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : undefined,
-          "Content-Type": "application/json",
-        },
+      const formData = new FormData();
+      const editableFields = { ...editForm };
+      // Allow all fields to be updated (except password)
+      Object.keys(editableFields).forEach((key) => {
+        if (editableFields[key] !== null && editableFields[key] !== undefined) {
+          if (key === "brokerInfo" || key === "preferences") {
+            formData.append(key, JSON.stringify(editableFields[key]));
+          } else if (key !== "photo") {
+            formData.append(key, editableFields[key]);
+          }
+        }
       });
-
-      const userData = response.data.user || response.data;
-      console.log('Fetched user data:', userData);
-      setUser(userData);
-      setEditForm({
-        ...userData,
-        brokerInfo: userData.brokerInfo || {},
-        preferences: userData.preferences || {},
-      });
-      if (userData.photo) {
-        console.log('Setting previewUrl:', userData.photo);
-        setPreviewUrl(userData.photo);
-      } else {
-        setPreviewUrl("");
+      if (selectedFile) {
+        formData.append("photo", selectedFile);
       }
-      setSuccess("Profile loaded successfully!");
-      trackInteraction("data_fetch", "profile_success", {
-        userId: id || "current_user",
-      });
+
+      const response = await axios.put(
+        `https://nestifyy-my3u.onrender.com/api/user/profile`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setUser(response.data.user);
+      setEditForm(response.data.user);
+      setIsEditing(false);
+      setSuccess("Profile updated successfully!");
+      trackInteraction("profile_management", "profile_update_success");
+      if (previewUrl && selectedFile) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setPreviewUrl(
+        response.data.user.photo
+          ? response.data.user.photo.startsWith("http")
+            ? response.data.user.photo
+            : `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
+          : ""
+      );
+      setSelectedFile(null);
     } catch (err) {
-      console.error("Profile fetch error:", err);
-      const errorMessage =
-        err.response?.data?.message || err.message || "Failed to fetch profile";
-      setError(errorMessage);
-      trackInteraction("data_fetch", "profile_failure", {
-        userId: id || "current_user",
-        error: errorMessage,
+      console.error("Profile update error:", err);
+      setError(
+        err.response?.data?.message || err.message || "Failed to update profile"
+      );
+      trackInteraction("profile_management", "profile_update_failure", {
+        error: err.response?.data?.message || err.message,
       });
-      if (err.response?.status === 401 || errorMessage.includes("token")) {
+      if (err.response?.status === 401) {
         localStorage.removeItem("token");
         navigate("/login");
       }
     } finally {
-      setLoading(false);
+      setSaveLoading(false);
     }
   };
-
-  if (!id && !isAuthenticated) {
-    navigate("/login");
-  } else {
-    fetchUser();
-  }
-}, [id, isAuthenticated, navigate, trackInteraction]);
 
   const handleCancel = () => {
     setIsEditing(false);
@@ -486,8 +507,30 @@ useEffect(() => {
                       <User className="w-4 h-4 mr-2" />
                       Basic Details
                     </h3>
-
                     <div className="space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                        <div className="flex items-center mb-2 sm:mb-0">
+                          <User className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
+                          <span className="text-black font-medium w-24">
+                            Name:
+                          </span>
+                        </div>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={editForm.name || ""}
+                            onChange={(e) =>
+                              handleInputChange("name", e.target.value)
+                            }
+                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                            placeholder="Enter name"
+                          />
+                        ) : (
+                          <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                            {user.name || "Not specified"}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
                           <User className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
@@ -495,9 +538,23 @@ useEffect(() => {
                             Gender:
                           </span>
                         </div>
-                        <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                          {user.gender || "Not specified"}
-                        </span>
+                        {isEditing ? (
+                          <select
+                            value={editForm.gender || "Other"}
+                            onChange={(e) =>
+                              handleInputChange("gender", e.target.value)
+                            }
+                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                          >
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        ) : (
+                          <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                            {user.gender || "Not specified"}
+                          </span>
+                        )}
                       </div>
                       <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
@@ -506,11 +563,23 @@ useEffect(() => {
                             Age:
                           </span>
                         </div>
-                        <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                          {user.age || "Not specified"}
-                        </span>
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            value={editForm.age || ""}
+                            onChange={(e) =>
+                              handleInputChange("age", e.target.value)
+                            }
+                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                            placeholder="Enter age"
+                          />
+                        ) : (
+                          <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                            {user.age || "Not specified"}
+                          </span>
+                        )}
                       </div>
-                      {/* <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
                           <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
                           <span className="text-black font-medium w-24">
@@ -532,7 +601,7 @@ useEffect(() => {
                             {user.profession || "Not specified"}
                           </span>
                         )}
-                      </div> */}
+                      </div>
                     </div>
                   </div>
                   <div className="bg-cream rounded-xl p-4 border border-warm-gray">
@@ -634,9 +703,9 @@ useEffect(() => {
               Email
             </a>
           )}
-          {user.number && (
+          {user.phone && (
             <a
-              href={`tel:${user.number}`}
+              href={`tel:${user.phone}`}
               className="flex-1 sm:flex-none bg-cream text-maroon border border-blue py-2 px-4 rounded-lg hover:bg-maroon hover:text-white transition-colors font-medium flex items-center justify-center gap-2 text-sm sm:text-base"
               onClick={() =>
                 trackInteraction("click", "contact_user_phone", {
