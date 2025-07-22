@@ -168,79 +168,79 @@ const ProfilePage = () => {
 
   // Save profile changes
   // ProfilePage.jsx - handleSave
-const handleSave = async () => {
-  setSaveLoading(true);
-  setError("");
-  setSuccess("");
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      throw new Error("No authentication token found");
-    }
+  const handleSave = async () => {
+    setSaveLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
 
-    const formData = new FormData();
-    const editableFields = { ...editForm };
-    // Remove non-editable fields
-    delete editableFields.name;
-    delete editableFields.gender;
-    delete editableFields.age;
+      const formData = new FormData();
+      const editableFields = { ...editForm };
+      // Remove non-editable fields
+      delete editableFields.name;
+      delete editableFields.gender;
+      delete editableFields.age;
 
-    Object.keys(editableFields).forEach((key) => {
-      if (editableFields[key] !== null && editableFields[key] !== undefined) {
-        if (key === "brokerInfo" || key === "preferences") {
-          formData.append(key, JSON.stringify(editableFields[key]));
-        } else if (key !== "photo") {
-          formData.append(key, editableFields[key]);
+      Object.keys(editableFields).forEach((key) => {
+        if (editableFields[key] !== null && editableFields[key] !== undefined) {
+          if (key === "brokerInfo" || key === "preferences") {
+            formData.append(key, JSON.stringify(editableFields[key]));
+          } else if (key !== "photo") {
+            formData.append(key, editableFields[key]);
+          }
         }
+      });
+      if (selectedFile) {
+        formData.append("photo", selectedFile);
       }
-    });
-    if (selectedFile) {
-      formData.append("photo", selectedFile);
-    }
 
-    const response = await axios.put(
-      `https://nestifyy-my3u.onrender.com/api/user/profile`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
+      const response = await axios.put(
+        `https://nestifyy-my3u.onrender.com/api/user/profile`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setUser(response.data.user);
+      setEditForm(response.data.user);
+      setIsEditing(false);
+      setSuccess("Profile updated successfully!");
+      trackInteraction("profile_management", "profile_update_success");
+      if (previewUrl && selectedFile) {
+        URL.revokeObjectURL(previewUrl);
       }
-    );
-
-    setUser(response.data.user);
-    setEditForm(response.data.user);
-    setIsEditing(false);
-    setSuccess("Profile updated successfully!");
-    trackInteraction("profile_management", "profile_update_success");
-    if (previewUrl && selectedFile) {
-      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(
+        response.data.user.photo
+          ? response.data.user.photo.startsWith("http")
+            ? response.data.user.photo
+            : `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
+          : ""
+      );
+      setSelectedFile(null);
+    } catch (err) {
+      console.error("Profile update error:", err);
+      setError(
+        err.response?.data?.message || err.message || "Failed to update profile"
+      );
+      trackInteraction("profile_management", "profile_update_failure", {
+        error: err.response?.data?.message || err.message,
+      });
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        navigate("/login");
+      }
+    } finally {
+      setSaveLoading(false);
     }
-    setPreviewUrl(
-      response.data.user.photo
-        ? response.data.user.photo.startsWith("http")
-          ? response.data.user.photo
-          : `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
-        : ""
-    );
-    setSelectedFile(null);
-  } catch (err) {
-    console.error("Profile update error:", err);
-    setError(
-      err.response?.data?.message || err.message || "Failed to update profile"
-    );
-    trackInteraction("profile_management", "profile_update_failure", {
-      error: err.response?.data?.message || err.message,
-    });
-    if (err.response?.status === 401) {
-      localStorage.removeItem("token");
-      navigate("/login");
-    }
-  } finally {
-    setSaveLoading(false);
-  }
-};
+  };
   // Cancel editing
   const handleCancel = () => {
     setIsEditing(false);
@@ -502,31 +502,31 @@ const handleSave = async () => {
                       <User className="w-4 h-4 mr-2" />
                       Basic Details
                     </h3>
-                    // ProfilePage.jsx - Inside the "Basic Details" section
-<div className="space-y-3">
-  <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
-    <div className="flex items-center mb-2 sm:mb-0">
-      <User className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
-      <span className="text-black font-medium w-24">
-        Gender:
-      </span>
-    </div>
-    <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-      {user.gender || "Not specified"}
-    </span>
-  </div>
-  <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
-    <div className="flex items-center mb-2 sm:mb-0">
-      <GraduationCap className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
-      <span className="text-black font-medium w-24">
-        Age:
-      </span>
-    </div>
-    <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-      {user.age || "Not specified"}
-    </span>
-  </div>
-  {/* <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                  
+                    <div className="space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                        <div className="flex items-center mb-2 sm:mb-0">
+                          <User className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
+                          <span className="text-black font-medium w-24">
+                            Gender:
+                          </span>
+                        </div>
+                        <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                          {user.gender || "Not specified"}
+                        </span>
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                        <div className="flex items-center mb-2 sm:mb-0">
+                          <GraduationCap className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
+                          <span className="text-black font-medium w-24">
+                            Age:
+                          </span>
+                        </div>
+                        <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                          {user.age || "Not specified"}
+                        </span>
+                      </div>
+                      {/* <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
                           <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
                           <span className="text-black font-medium w-24">
@@ -632,8 +632,6 @@ const handleSave = async () => {
               </div>
             )}
           </div>
-
-        
         </div>
 
         {/* Actions Panel */}
