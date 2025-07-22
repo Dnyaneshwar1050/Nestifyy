@@ -537,7 +537,7 @@ const ProfilePage = () => {
               className="bg-gradient-to-r from-maroon to-light-maroon px-4 py-3 flex items-center justify-between cursor-pointer"
               onClick={() => toggleSection("personal")}
             >
-              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center">
+              <h2 className="text-lg sm:text-xl font-bold text-black flex items-center">
                 <User className="w-5 h-5 mr-2" />
                 Personal Information
               </h2>

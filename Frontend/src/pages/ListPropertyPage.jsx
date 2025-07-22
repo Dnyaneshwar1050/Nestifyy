@@ -538,7 +538,7 @@ const ListPropertyPage = () => {
             multiple
             accept="image/*"
             onChange={handleImageChange}
-            className="w-full text-text-gray-700 text-base cursor-pointer py-3 px-4 border border-border-gray-300 rounded-lg bg-card-bg shadow-sm transition-colors duration-200 file:mr-4 file:py-2.5 file:px-5 file:rounded-lg file:border-0 file:text-base file:font-medium file:bg-primary-blue-light file:text-primary-blue-dark hover:file:bg-[#bfdbfe] focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring focus:outline-none"
+            className="w-full text-text-gray-500 text-base cursor-pointer py-3 px-4 border border-border-gray-300 rounded-lg bg-card-bg shadow-sm transition-colors duration-200 file:mr-4 file:py-2.5 file:px-5 file:rounded-lg file:border-0 file:text-base file:font-medium file:bg-primary-blue-light file:text-primary-blue-dark hover:file:bg-[#bfdbfe] focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring focus:outline-none"
             onFocus={() => trackInteraction('focus', 'list_property_image_upload_input')}
           />
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -567,7 +567,7 @@ const ListPropertyPage = () => {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full bg-gradient-to-r from-primary-blue to-blue-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all duration-300 shadow-card-shadow-lg text-xl flex items-center justify-center gap-2 border-none cursor-pointer transform scale-100 hover:scale-[1.005] hover:shadow-xl active:scale-99 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+          className={`w-full bg-blue-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all duration-300 shadow-card-shadow-lg text-xl flex items-center justify-center gap-2 border-none cursor-pointer transform scale-100 hover:scale-[1.005] hover:shadow-xl active:scale-99 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
           onClick={() => trackInteraction('click', 'list_property_submit_button')}
         >
           {loading ? (
