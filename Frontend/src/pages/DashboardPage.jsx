@@ -188,7 +188,7 @@ const DashboardPage = () => {
               fetchUserData();
               trackInteraction('click', 'dashboard_retry_load');
             }}
-            className="w-full bg-maroon text-white py-3 px-4 rounded-lg hover:bg-deep-maroon transition-colors duration-300 font-bold text-lg shadow-md hover:shadow-lg transform hover:scale-[1.01] active:scale-98"
+            className="w-full bg-blur-500 text-white py-3 px-4 rounded-lg hover:bg-deep-maroon transition-colors duration-300 font-bold text-white shadow-md hover:shadow-lg transform hover:scale-[1.01] active:scale-98"
           >
             Retry
           </button>
@@ -211,7 +211,7 @@ const DashboardPage = () => {
 
       {userRole === 'user' && (
         <>
-          <section className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8 border border-warm-gray animate-fade-in-up animation-delay-100">
+          {/* <section className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8 border border-warm-gray animate-fade-in-up animation-delay-100">
             <h2 className="text-2xl font-bold text-black mb-4 flex items-center space-x-3">
               <Home size={28} className="text-maroon" />
               <span>My Properties</span>
@@ -268,7 +268,7 @@ const DashboardPage = () => {
                 </table>
               </div>
             )}
-          </section>
+          </section> */}
 
           <section className="bg-white rounded-2xl shadow-lg overflow-hidden border border-warm-gray mb-8 animate-fade-in-up animation-delay-200">
             <div
