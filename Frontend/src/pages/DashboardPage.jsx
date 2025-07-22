@@ -43,6 +43,13 @@ const DashboardPage = () => {
         throw new Error('No authentication token found');
       }
 
+      // Fetch properties
+            const propertiesResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/property/my-properties', {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            setProperties(propertiesResponse.data.properties || []);
+
+
       // Fetch user-created properties
       // try {
       //   const propertiesResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/property/my-properties', {
@@ -211,6 +218,73 @@ const DashboardPage = () => {
 
       {userRole === 'user' && (
         <>
+          {/* Properties Section */}
+
+        <section className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-6xl mb-8 border border-gray-200 box-border md:p-8 animate-fade-in-up delay-300">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3">
+                  <Home size={28} className="text-orange-600" />
+                  <span>My Properties</span>
+                </h2>
+                <button
+                  onClick={handleAddProperty}
+                  className="mb-6 bg-green-600 text-white px-6 py-3 rounded-full transition-all duration-300 text-base font-semibold shadow-md inline-flex items-center gap-2 hover:bg-green-700 hover:shadow-lg active:scale-95 border-none cursor-pointer"
+                  onMouseEnter={() => trackInteraction('hover', 'broker_add_property_button')}
+                >
+                  <PlusCircle size={20} className="w-5 h-5" />
+                  <span>Add New Property</span>
+                </button>
+        
+                {properties.length === 0 ? (
+                  <p className="text-gray-600 text-lg py-4">You haven't listed any properties yet. Start by adding one!</p>
+                ) : (
+                  <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-md">
+                    <table className="w-full min-w-[600px] bg-white border-collapse">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Image</th>
+                          <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Title</th>
+                          <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Location</th>
+                          <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Status</th>
+                          <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 whitespace-nowrap">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {properties.map(property => (
+                          <tr key={property._id} className="border-b border-gray-200 transition-colors duration-150 last:border-b-0 hover:bg-gray-50">
+                            <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap">
+                              <img src={property.imageUrls[0] || 'https://placehold.co/100x70/E0E7FF/4338CA?text=Prop'} alt={property.title} className="w-20 h-14 object-cover rounded-md shadow-sm" />
+                            </td>
+                            <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap">{property.title}</td>
+                            <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap">{property.location}</td>
+                            <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap">
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold inline-block ${property.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                {property.status || 'Active'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-gray-800 text-base whitespace-nowrap flex gap-3 flex-wrap">
+                              <button
+                                className="text-blue-600 transition-colors duration-200 text-sm font-medium inline-flex items-center gap-1 bg-none border-none cursor-pointer p-1 rounded hover:text-blue-700 hover:bg-blue-50"
+                                onClick={() => handleViewProperty(property._id)}
+                              >
+                                <Eye size={16} /><span>View</span>
+                              </button>
+                              <button
+                                className="text-red-600 transition-colors duration-200 text-sm font-medium inline-flex items-center gap-1 bg-none border-none cursor-pointer p-1 rounded hover:text-red-800 hover:bg-red-100"
+                                onClick={() => confirmRemoveProperty(property._id)}
+                              >
+                                <Trash2 size={16} /><span>Remove</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
+
+
+
           {/* <section className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8 border border-warm-gray animate-fade-in-up animation-delay-100">
             <h2 className="text-2xl font-bold text-black mb-4 flex items-center space-x-3">
               <Home size={28} className="text-maroon" />

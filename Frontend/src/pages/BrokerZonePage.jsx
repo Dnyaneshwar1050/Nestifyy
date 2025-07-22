@@ -46,10 +46,10 @@ const BrokerZonePage = () => {
       setSubscriptionStatus(subscriptionResponse.data.status || 'inactive');
 
       // Fetch leads
-      const leadsResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/room-request/leads', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setLeads(leadsResponse.data.leads || []);
+      // const leadsResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/room-request/leads', {
+      //   headers: { Authorization: `Bearer ${token}` },
+      // });
+      // setLeads(leadsResponse.data.leads || []);
 
       // Fetch properties
       const propertiesResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/property/my-properties', {
