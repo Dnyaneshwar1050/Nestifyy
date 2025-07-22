@@ -1,4 +1,3 @@
-// src/components/Navbar.jsx
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
@@ -181,41 +180,40 @@ const Navbar = () => {
             Broker Zone
           </NavLink>
         )}
-        {/* <NavLink to="/support" className={({ isActive }) => `font-medium text-base py-2 px-3 rounded-lg transition-colors duration-200 ${isActive ? 'text-blue-700 bg-blue-50 shadow-sm' : 'text-gray-700 hover:text-blue-700 hover:bg-gray-50'}`} onClick={() => trackInteraction('click', 'nav_support')}>Support</NavLink> */}
-
+        {isAuthenticated && (
+          <NavLink
+            to="/profile"
+            className={({ isActive }) =>
+              `font-medium text-base py-2 px-3 rounded-lg transition-colors duration-200 ${
+                isActive
+                  ? "text-blue-700 bg-blue-50 shadow-sm"
+                  : "text-gray-700 hover:text-blue-700 hover:bg-gray-50"
+              }`
+            }
+            onClick={() => trackInteraction("click", "nav_profile")}
+          >
+            Profile
+          </NavLink>
+        )}
         {isAuthenticated ? (
           <>
             <div className="w-px h-6 bg-gray-200 mx-2"></div>
-            <NavLink
-              to="/dashboard"
-              className={({ isActive }) =>
-                `flex items-center gap-1 px-4 py-2 rounded-full transition-all duration-300 text-sm font-medium ${
-                  isActive
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
-                }`
-              }
-              onClick={() => trackInteraction("click", "nav_dashboard")}
-            >
-              <User className="w-4 h-4" />
-              <span>Dashboard</span>
-            </NavLink>
-            {isAuthenticated && ( // Show Profile link only for authenticated users
+            {userRole === "user" && (
               <NavLink
-                to="/profile"
+                to="/dashboard"
                 className={({ isActive }) =>
-                  `font-medium text-base py-2 px-3 rounded-lg transition-colors duration-200 ${
+                  `flex items-center gap-1 px-4 py-2 rounded-full transition-all duration-300 text-sm font-medium ${
                     isActive
-                      ? "text-blue-700 bg-blue-50 shadow-sm"
-                      : "text-gray-700 hover:text-blue-700 hover:bg-gray-50"
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
                   }`
                 }
-                onClick={() => trackInteraction("click", "nav_profile")}
+                onClick={() => trackInteraction("click", "nav_dashboard")}
               >
-                Profile
+                <User className="w-4 h-4" />
+                <span>Dashboard</span>
               </NavLink>
             )}
-
             {isAdmin && (
               <NavLink
                 to="/admin-panel"
@@ -368,25 +366,8 @@ const Navbar = () => {
                 Broker Zone
               </NavLink>
             )}
-            {/* <NavLink
-              to="/support"
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                trackInteraction("click", "mobile_nav_support");
-              }}
-              className={({ isActive }) =>
-                `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${
-                  isActive
-                    ? "text-blue-700 bg-blue-50 font-semibold"
-                    : "text-gray-700 hover:bg-gray-50 hover:text-blue-700"
-                }`
-              }
-            >
-              Support
-            </NavLink> */}
-
-            {isAuthenticated ? (
-              <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col space-y-2">
+            {isAuthenticated && (
+              <>
                 {userRole === "user" && (
                   <NavLink
                     to="/dashboard"
@@ -405,23 +386,26 @@ const Navbar = () => {
                     Dashboard
                   </NavLink>
                 )}
+                </>
+            )}
+            {isAuthenticated ? (
+              <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col space-y-2">
                 <NavLink
-                  to="/profile"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    trackInteraction("click", "mobile_nav_profile");
-                  }}
-                  className={({ isActive }) =>
-                    `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${
-                      isActive
-                        ? "text-blue-700 bg-blue-50 font-semibold"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-blue-700"
-                    }`
-                  }
-                >
-                  Profile
-                </NavLink>
-
+                to="/profile"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  trackInteraction("click", "mobile_nav_profile");
+                }}
+                className={({ isActive }) =>
+                  `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${
+                    isActive
+                      ? "text-blue-700 bg-blue-50 font-semibold"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-blue-700"
+                  }`
+                }
+              >
+                Profile
+              </NavLink>
                 {isAdmin && (
                   <NavLink
                     to="/admin-panel"
