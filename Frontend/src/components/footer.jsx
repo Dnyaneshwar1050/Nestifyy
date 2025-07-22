@@ -15,7 +15,7 @@ const Footer = () => {
 
   return (
     <footer className="bg-gray-900 text-gray-300 py-10 px-6 rounded-t-xl shadow-inner mt-12 md:px-12">
-      <div className="grid grid-cols-1 gap-10 max-w-screen-xl mx-auto md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-10 max-w-screen-xl mx-auto md:grid-cols-3">
         {/* Nestify Brand Info */}
         <div className="md:col-span-1">
           <div className="flex items-center mb-4">
@@ -27,7 +27,7 @@ const Footer = () => {
           </p>
           <div className="flex space-x-4 mt-6">
             <a
-              href="https://www.facebook.com/nestify"
+              href="https://www.facebook.com/nestifyapp"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-400 transition-colors duration-200 hover:text-blue-400"
@@ -37,7 +37,7 @@ const Footer = () => {
               <Facebook size={24} />
             </a>
             <a
-              href="https://www.instagram.com/nestify"
+              href="https://www.instagram.com/nestifyapp"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-400 transition-colors duration-200 hover:text-blue-400"
@@ -57,53 +57,6 @@ const Footer = () => {
               <MessageCircle size={24} />
             </a>
           </div>
-        </div>
-
-        {/* Quick Links */}
-        <div>
-          <h4 className="text-white font-bold text-lg mb-5 border-b border-gray-700 pb-2">Quick Links</h4>
-          <ul className="list-none p-0 m-0 flex flex-col space-y-3 text-sm">
-            <li>
-              <button
-                onClick={() => handleNavigation('/about', 'footer_about_us')}
-                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
-              >
-                About Us
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => handleNavigation('/how-it-works', 'footer_how_it_works')}
-                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
-              >
-                How It Works
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => handleNavigation('/faq', 'footer_faq')}
-                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
-              >
-                FAQ
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => handleNavigation('/terms', 'footer_terms_conditions')}
-                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
-              >
-                Terms & Conditions
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => handleNavigation('/privacy', 'footer_privacy_policy')}
-                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
-              >
-                Privacy Policy
-              </button>
-            </li>
-          </ul>
         </div>
 
         {/* Explore */}
@@ -136,20 +89,12 @@ const Footer = () => {
             </li>
             <li>
               <button
-                onClick={() => handleNavigation('/support', 'footer_support_link')}
+                onClick={() => handleNavigation('/broker-zone', 'footer_broker_zone_link')}
                 className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
               >
-                Support
+                Broker Zone
               </button>
             </li>
-            {/* <li>
-              <button
-                onClick={() => handleNavigation('/cities', 'footer_cities_link')}
-                className="text-gray-400 no-underline transition-colors duration-200 hover:text-white bg-none border-none cursor-pointer"
-              >
-                Cities
-              </button>
-            </li> */}
           </ul>
         </div>
 
@@ -163,17 +108,29 @@ const Footer = () => {
             </p>
             <p className="flex items-start leading-tight">
               <PhoneCall size={18} className="text-blue-400 mr-2 flex-shrink-0 mt-px" />
-              +91 98765 43210
+              <a
+                href="tel:+919876543210"
+                className="text-gray-400 transition-colors duration-200 hover:text-white"
+                onClick={() => trackInteraction('click', 'footer_contact_phone')}
+              >
+                +91 98765 43210
+              </a>
             </p>
             <p className="flex items-start leading-tight">
               <Mail size={18} className="text-blue-400 mr-2 flex-shrink-0 mt-px" />
-              support@nestify.com
+              <a
+                href="mailto:support@nestify.com"
+                className="text-gray-400 transition-colors duration-200 hover:text-white"
+                onClick={() => trackInteraction('click', 'footer_contact_email')}
+              >
+                support@nestify.com
+              </a>
             </p>
           </address>
         </div>
       </div>
       <div className="mt-12 pt-8 border-t border-gray-700 text-center text-gray-500 text-sm">
-        &copy; {new Date().getFullYear()} Nestify. All rights reserved.
+        © {new Date().getFullYear()} Nestify. All rights reserved.
       </div>
     </footer>
   );
