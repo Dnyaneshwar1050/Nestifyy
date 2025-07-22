@@ -346,25 +346,14 @@ const getMyProperties = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized: No user ID found" });
     }
 
-    // Validate ownerId format
-    if (!/^[0-9a-fA-F]{24}$/.test(ownerId)) {
-      console.error("getMyProperties: Invalid ownerId format:", ownerId);
-      return res.status(400).json({ message: "Invalid user ID format" });
-    }
-
     const properties = await Property.find({ owner: ownerId })
-      .populate({
-        path: "owner",
-        select: "name email phone",
-        strictPopulate: false,
-      })
+      .populate("owner", "name email phone")
       .lean()
       .catch((err) => {
         console.error("getMyProperties: MongoDB query error:", {
           message: err.message,
           stack: err.stack,
           ownerId,
-          timestamp: new Date().toISOString(),
         });
         throw new Error("Database query failed");
       });
@@ -382,17 +371,12 @@ const getMyProperties = async (req, res) => {
     console.error("getMyProperties: Error:", {
       message: error.message,
       stack: error.stack,
-      ownerId: req.user?._id || req.user?.id || "unknown",
+      ownerId: req.user?._id || req.user?.id,
       timestamp: new Date().toISOString(),
     });
     res.status(500).json({
       message: "Failed to fetch properties",
       error: error.message,
-      details: {
-        ownerId: req.user?._id || req.user?.id || "unknown",
-        errorName: error.name,
-        errorCode: error.code,
-      },
     });
   }
 };

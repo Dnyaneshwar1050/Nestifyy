@@ -37,9 +37,6 @@ const DashboardPage = () => {
   const fetchUserData = async () => {
     setLoading(true);
     setError('');
-    let propertiesError = '';
-    let roomRequestsError = '';
-
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -54,7 +51,7 @@ const DashboardPage = () => {
         setProperties(propertiesResponse.data.properties || []);
       } catch (propErr) {
         console.error('fetchUserData: Properties fetch error:', propErr);
-        propertiesError = propErr.response?.data?.message || 'Failed to load properties. Please try again later.';
+        setError(propErr.response?.data?.message || 'Failed to load properties. Please try again later.');
       }
 
       // Fetch user-created room requests
@@ -65,24 +62,13 @@ const DashboardPage = () => {
         setRoomRequests(roomRequestsResponse.data || []);
       } catch (reqErr) {
         console.error('fetchUserData: Room requests fetch error:', reqErr);
-        roomRequestsError = reqErr.response?.data?.message || 'Failed to load room requests. Please try again later.';
-      }
-
-      // Set error message only if both fetches fail
-      if (propertiesError && roomRequestsError) {
-        setError('Failed to load dashboard data: ' + propertiesError + ' ' + roomRequestsError);
-        trackInteraction('data_fetch', 'dashboard_failure', { error: propertiesError + ' ' + roomRequestsError });
-      } else if (propertiesError) {
-        setError(propertiesError);
-        trackInteraction('data_fetch', 'dashboard_properties_failure', { error: propertiesError });
-      } else if (roomRequestsError) {
-        setError(roomRequestsError);
-        trackInteraction('data_fetch', 'dashboard_room_requests_failure', { error: roomRequestsError });
-      } else {
-        trackInteraction('data_fetch', 'dashboard_user_data_success');
+        if (!error) {
+          setError(reqErr.response?.data?.message || 'Failed to load room requests. Please try again later.');
+        }
       }
 
       setLoading(false);
+      trackInteraction('data_fetch', 'dashboard_user_data_success');
     } catch (err) {
       console.error('fetchUserData: General error:', err);
       setError(err.response?.data?.message || 'Failed to load dashboard data. Please check your connection or try again later.');
