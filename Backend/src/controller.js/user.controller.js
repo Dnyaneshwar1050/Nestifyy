@@ -12,10 +12,10 @@ const registerUser = async (req, res) => {
     const { name, email, password, role, phone, gender, age, photo, location, profession } =
       req.body;
 
-    if (!name || !email || !password || !phone || !age) {
+    if (!name || !email || !password || !age) {
       return res
         .status(400)
-        .json({ message: "Name, email, password, phone, and age are required" });
+        .json({ message: "Name, email, password, and age are required" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -40,10 +40,11 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       role: role || "user",
       age: Number(age),
-      phone,
+      phone: phone || "", // Allow empty phone
       location,
       photo: photoUrl,
       gender: gender || "Other",
+      profession: profession || "",
     });
     await user.save();
 
@@ -57,7 +58,7 @@ const registerUser = async (req, res) => {
         age,
         location,
         gender,
-        role: 
+        profession,
       },
     });
   } catch (error) {
@@ -153,16 +154,13 @@ const updateUserProfile = async (req, res) => {
     delete updateData.__v;
     delete updateData.password;
 
-    // Validate fields
+    // Validate fields (exclude phone)
     if (updateData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updateData.email)) {
       return res.status(400).json({ message: 'Invalid email format' });
     }
-    if (updateData.phone && !/^\+?\d{10,15}$/.test(updateData.phone)) {
-      return res.status(400).json({ message: 'Invalid phone number format (10-15 digits)' });
+    if (updateData.profession && updateData.profession.length > 100) {
+      return res.status(400).json({ message: 'Profession cannot exceed 100 characters' });
     }
-    // if (updateData.profession && updateData.profession.length > 100) {
-    //   return res.status(400).json({ message: 'Profession cannot exceed 100 characters' });
-    // }
     if (updateData.location && !updateData.location.trim()) {
       return res.status(400).json({ message: 'Location cannot be empty' });
     }

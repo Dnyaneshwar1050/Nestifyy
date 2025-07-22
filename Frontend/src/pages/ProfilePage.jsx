@@ -26,7 +26,7 @@ const ProfilePage = () => {
   const { trackInteraction, isAuthenticated } = useContext(AppContext);
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState({}); // New state for field-specific errors
+  const [fieldErrors, setFieldErrors] = useState({});
   const [success, setSuccess] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -136,8 +136,6 @@ const ProfilePage = () => {
       fieldError = "Location cannot be empty";
     } else if (field === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       fieldError = "Please enter a valid email address";
-    } else if (field === "phone" && value && !/^\+?\d{10,15}$/.test(value)) {
-      fieldError = "Please enter a valid phone number (10-15 digits)";
     } else if (field === "profession" && value.length > 100) {
       fieldError = "Profession cannot exceed 100 characters";
     }
@@ -541,7 +539,7 @@ const ProfilePage = () => {
                           {user.age || "Not specified"}
                         </span>
                       </div>
-                      {/* <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
                           <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
                           <span className="text-black font-medium w-24">
@@ -570,7 +568,7 @@ const ProfilePage = () => {
                             {user.profession || "Not specified"}
                           </span>
                         )}
-                      </div> */}
+                      </div>
                     </div>
                   </div>
                   <div className="bg-cream rounded-xl p-4 border border-warm-gray">
@@ -619,13 +617,13 @@ const ProfilePage = () => {
                         {isEditing ? (
                           <div className="flex-1 relative">
                             <input
-                              type="tel"
+                              type="text" // Changed from 'tel' to 'text' to allow any input
                               value={editForm.phone || ""}
                               onChange={(e) =>
                                 handleInputChange("phone", e.target.value)
                               }
                               className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                              placeholder="Enter phone number (e.g., +1234567890)"
+                              placeholder="Enter phone number"
                             />
                             {fieldErrors.phone && (
                               <p className="text-red-500 text-xs mt-1">
