@@ -111,7 +111,6 @@ const loginUser = async (req, res) => {
     });
   }
 };
-
 const getUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -133,17 +132,17 @@ const updateUserProfile = async (req, res) => {
     const userId = req.user.id;
     const updateData = { ...req.body };
 
-    console.log("UpdateUserProfile - Received body:", req.body);
-    console.log("UpdateUserProfile - Received file:", req.file);
+    console.log('UpdateUserProfile - Received body:', req.body);
+    console.log('UpdateUserProfile - Received file:', req.file);
 
     // Find user
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     // Prevent updates to protected fields for non-admins
-    const isAdmin = user.role === "admin" || user.role === "super-admin";
+    const isAdmin = user.role === 'admin' || user.role === 'super-admin';
     if (!isAdmin) {
       delete updateData.name;
       delete updateData.gender;
@@ -159,21 +158,14 @@ const updateUserProfile = async (req, res) => {
       try {
         updateData.brokerInfo = JSON.parse(updateData.brokerInfo);
       } catch (error) {
-        return res
-          .status(400)
-          .json({ message: "Invalid brokerInfo format", error: error.message });
+        return res.status(400).json({ message: 'Invalid brokerInfo format', error: error.message });
       }
     }
     if (updateData.preferences) {
       try {
         updateData.preferences = JSON.parse(updateData.preferences);
       } catch (error) {
-        return res
-          .status(400)
-          .json({
-            message: "Invalid preferences format",
-            error: error.message,
-          });
+        return res.status(400).json({ message: 'Invalid preferences format', error: error.message });
       }
     }
 
@@ -184,16 +176,15 @@ const updateUserProfile = async (req, res) => {
     if (req.file) {
       try {
         if (user.photo) {
-          const publicId = user.photo.split("/").pop().split(".")[0];
+          const publicId = user.photo.split('/').pop().split('.')[0];
+          console.log('Deleting previous photo with publicId:', publicId);
           await deleteImage(publicId);
         }
         const result = await uploadImage(req.file);
+        console.log('New photo uploaded:', result);
         updateData.photo = result.secure_url;
-        // No need for fs.unlinkSync here, as uploadImage handles cleanup
       } catch (error) {
-        return res
-          .status(500)
-          .json({ message: "Failed to upload photo", error: error.message });
+        return res.status(500).json({ message: 'Failed to upload photo', error: error.message });
       }
     }
 
@@ -202,27 +193,22 @@ const updateUserProfile = async (req, res) => {
       userId,
       { $set: updateData },
       { new: true, runValidators: true }
-    ).select("-password");
+    ).select('-password');
 
     if (!updatedUser) {
-      return res.status(404).json({ message: "User not found after update" });
+      return res.status(404).json({ message: 'User not found after update' });
     }
 
+    console.log('Updated user photo:', updatedUser.photo);
     res.status(200).json({
       user: updatedUser,
-      message: "Profile updated successfully",
+      message: 'Profile updated successfully'
     });
   } catch (error) {
-    console.error("Error in updateUserProfile:", error);
-    res
-      .status(500)
-      .json({
-        message: "Server error, please try again later",
-        error: error.message,
-      });
+    console.error('Error in updateUserProfile:', error);
+    res.status(500).json({ message: 'Server error, please try again later', error: error.message });
   }
-};
-const getUserById = async (req, res) => {
+};const getUserById = async (req, res) => {
   try {
     const userId = req.params.id;
     const user = await User.findById(userId).select("-password");

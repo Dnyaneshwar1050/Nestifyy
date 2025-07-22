@@ -161,89 +161,71 @@ const ProfilePage = () => {
     }));
   };
 
-  const handleSave = async () => {
-    setSaveLoading(true);
+useEffect(() => {
+  const fetchUser = async () => {
+    setLoading(true);
     setError("");
     setSuccess("");
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
+      console.log('Fetching profile with token:', token);
+      if (!token && !id) {
         throw new Error("No authentication token found");
       }
 
-      const formData = new FormData();
-      const editableFields = {
-        email: editForm.email,
-        phone: editForm.phone,
-        location: editForm.location,
-        brokerInfo: editForm.brokerInfo || {},
-        preferences: editForm.preferences || {},
-      };
-
-      Object.keys(editableFields).forEach((key) => {
-        if (editableFields[key] !== null && editableFields[key] !== undefined) {
-          if (key === "brokerInfo" || key === "preferences") {
-            formData.append(key, JSON.stringify(editableFields[key]));
-          } else {
-            formData.append(key, editableFields[key]);
-          }
-        }
+      const apiUrl = id
+        ? `https://nestifyy-my3u.onrender.com/api/user/${id}`
+        : `https://nestifyy-my3u.onrender.com/api/user/profile`;
+      const response = await axios.get(apiUrl, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : undefined,
+          "Content-Type": "application/json",
+        },
       });
-      if (selectedFile) {
-        formData.append("photo", selectedFile);
-      }
 
-      // Log FormData for debugging
-      for (let [key, value] of formData.entries()) {
-        console.log(`FormData - ${key}:`, value);
+      const userData = response.data.user || response.data;
+      console.log('Fetched user data:', userData);
+      setUser(userData);
+      setEditForm({
+        ...userData,
+        brokerInfo: userData.brokerInfo || {},
+        preferences: userData.preferences || {},
+      });
+      if (userData.photo) {
+        console.log('Setting previewUrl:', userData.photo);
+        setPreviewUrl(userData.photo);
+      } else {
+        setPreviewUrl("");
       }
-
-      const response = await axios.put(
-        `https://nestifyy-my3u.onrender.com/api/user/profile`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      setUser(response.data.user);
-      setEditForm(response.data.user);
-      setIsEditing(false);
-      setSuccess("Profile updated successfully!");
-      trackInteraction("profile_management", "profile_update_success");
-      if (previewUrl && selectedFile) {
-        URL.revokeObjectURL(previewUrl);
-      }
-      setPreviewUrl(
-        response.data.user.photo
-          ? response.data.user.photo.startsWith("http")
-            ? response.data.user.photo
-            : `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
-          : ""
-      );
-      setSelectedFile(null);
+      setSuccess("Profile loaded successfully!");
+      trackInteraction("data_fetch", "profile_success", {
+        userId: id || "current_user",
+      });
     } catch (err) {
-      console.error("Profile update error:", err);
+      console.error("Profile fetch error:", err);
       const errorMessage =
-        err.response?.data?.message ||
-        err.message ||
-        "Failed to update profile";
+        err.response?.data?.message || err.message || "Failed to fetch profile";
       setError(errorMessage);
-      trackInteraction("profile_management", "profile_update_failure", {
+      trackInteraction("data_fetch", "profile_failure", {
+        userId: id || "current_user",
         error: errorMessage,
       });
-      if (err.response?.status === 401) {
+      if (err.response?.status === 401 || errorMessage.includes("token")) {
         localStorage.removeItem("token");
         navigate("/login");
       }
     } finally {
-      setSaveLoading(false);
+      setLoading(false);
     }
   };
-  // Cancel editing
+
+  if (!id && !isAuthenticated) {
+    navigate("/login");
+  } else {
+    fetchUser();
+  }
+}, [id, isAuthenticated, navigate, trackInteraction]);
+
   const handleCancel = () => {
     setIsEditing(false);
     setEditForm(user);
