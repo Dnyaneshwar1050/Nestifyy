@@ -7,7 +7,13 @@ dotenv.config({
   path: './.env' 
 });
 
- 
+const uploadDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+  console.log("Created uploads directory:", uploadDir);
+} 
+
+
 DBConection()
 .then(() => {
     app.listen(process.env.PORT ||8080, ()=>{

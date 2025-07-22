@@ -1,5 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model.js';
+dotenv.config({
+  path: './env'
+});
 
 const authMiddleware = async (req, res, next) => {
   try {

@@ -62,6 +62,7 @@ cloudinary.config({
 
 const uploadImage = async (file) => {
   try {
+    console.log("UploadImage input:", file);
     // Verify Cloudinary credentials again at runtime
     if (!process.env.CLOUDINARY_CLOUD_NAME) {
       throw new Error('Missing Cloudinary cloud_name. Check your .env file.');
@@ -78,6 +79,7 @@ const uploadImage = async (file) => {
     // Ensure file exists
     try {
       await fs.access(file.path);
+      console.log("File exists at path:", file.path);
     } catch (err) {
       throw new Error(`File doesn't exist at path: ${file.path}`);
     }
