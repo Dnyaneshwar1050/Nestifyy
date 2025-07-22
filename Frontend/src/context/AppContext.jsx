@@ -7,9 +7,8 @@ export const AppContext = createContext();
 export const AppContextProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState(null);
-  const navigate = useNavigate();
   const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || '');
-
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -19,35 +18,44 @@ export const AppContextProvider = ({ children }) => {
         if (decoded.exp * 1000 > Date.now()) {
           setIsAuthenticated(true);
           setUserId(decoded.id || decoded._id);
+          setUserRole(decoded.role || localStorage.getItem('userRole') || ''); 
         } else {
           localStorage.removeItem('token');
+          localStorage.removeItem('userRole');
           setIsAuthenticated(false);
           setUserId(null);
+          setUserRole('');
         }
       } catch (error) {
         localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
         setIsAuthenticated(false);
         setUserId(null);
+        setUserRole('');
       }
     } else {
       setIsAuthenticated(false);
       setUserId(null);
+      setUserRole('');
     }
   }, []);
+
+  const handleLogin = (token, user) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('userRole', user.role);
+    const decoded = jwtDecode(token);
+    setIsAuthenticated(true);
+    setUserId(user?.id || user?._id || decoded.id || decoded._id || null);
+    setUserRole(user.role || decoded.role || ''); // Update userRole in context
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
     setIsAuthenticated(false);
     setUserId(null);
-    navigate("/login"); 
-  };
-
-  const handleLogin = (token, user) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('userRole', user.role);
-    setIsAuthenticated(true);
-    setUserId(user?.id || user?._id || null);
+    setUserRole('');
+    navigate('/login');
   };
 
   const trackInteraction = (eventType, elementId, additionalData = {}) => {
@@ -62,7 +70,16 @@ export const AppContextProvider = ({ children }) => {
   };
 
   return (
-    <AppContext.Provider value={{ isAuthenticated, userId, trackInteraction, handleLogout, handleLogin }}>
+    <AppContext.Provider
+      value={{
+        isAuthenticated,
+        userId,
+        userRole,
+        trackInteraction,
+        handleLogout,
+        handleLogin,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );
