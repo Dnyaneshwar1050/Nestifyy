@@ -12,10 +12,10 @@ const registerUser = async (req, res) => {
     const { name, email, password, role, phone, gender, age, photo, location, profession } =
       req.body;
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !phone || !age) {
       return res
         .status(400)
-        .json({ message: "Name, email, and password are required" });
+        .json({ message: "Name, email, password, phone, and age are required" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -43,7 +43,7 @@ const registerUser = async (req, res) => {
       phone,
       location,
       photo: photoUrl,
-      gender,
+      gender: gender || "Other",
     });
     await user.save();
 
@@ -57,7 +57,7 @@ const registerUser = async (req, res) => {
         age,
         location,
         gender,
-
+        role: 
       },
     });
   } catch (error) {
@@ -138,28 +138,20 @@ const updateUserProfile = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Allow updates to all fields except password
-    delete updateData.password;
+    // Prevent updates to protected fields for non-admins
+    const isAdmin = user.role === 'admin' || user.role === 'super-admin';
+    if (!isAdmin) {
+      delete updateData.name;
+      delete updateData.gender;
+      delete updateData.age;
+    }
+
+    // Remove other protected fields
     delete updateData._id;
     delete updateData.createdAt;
     delete updateData.updatedAt;
     delete updateData.__v;
-
-    // Parse nested fields
-    if (updateData.brokerInfo) {
-      try {
-        updateData.brokerInfo = JSON.parse(updateData.brokerInfo);
-      } catch (error) {
-        return res.status(400).json({ message: 'Invalid brokerInfo format', error: error.message });
-      }
-    }
-    if (updateData.preferences) {
-      try {
-        updateData.preferences = JSON.parse(updateData.preferences);
-      } catch (error) {
-        return res.status(400).json({ message: 'Invalid preferences format', error: error.message });
-      }
-    }
+    delete updateData.password;
 
     // Validate fields
     if (updateData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updateData.email)) {
@@ -168,11 +160,11 @@ const updateUserProfile = async (req, res) => {
     if (updateData.phone && !/^\+?\d{10,15}$/.test(updateData.phone)) {
       return res.status(400).json({ message: 'Invalid phone number format (10-15 digits)' });
     }
-    if (updateData.age && (isNaN(updateData.age) || updateData.age < 18 || updateData.age > 120)) {
-      return res.status(400).json({ message: 'Age must be between 18 and 120' });
-    }
-    if (updateData.gender && !['Male', 'Female', 'Other'].includes(updateData.gender)) {
-      return res.status(400).json({ message: 'Invalid gender value' });
+    // if (updateData.profession && updateData.profession.length > 100) {
+    //   return res.status(400).json({ message: 'Profession cannot exceed 100 characters' });
+    // }
+    if (updateData.location && !updateData.location.trim()) {
+      return res.status(400).json({ message: 'Location cannot be empty' });
     }
 
     // Handle photo upload
@@ -187,6 +179,7 @@ const updateUserProfile = async (req, res) => {
         console.log('New photo uploaded:', result);
         updateData.photo = result.secure_url;
       } catch (error) {
+        console.error('Photo upload error:', error);
         return res.status(500).json({ message: 'Failed to upload photo', error: error.message });
       }
     }
@@ -201,7 +194,7 @@ const updateUserProfile = async (req, res) => {
       return res.status(404).json({ message: 'User not found after update' });
     }
 
-    console.log('Updated user photo:', updatedUser.photo);
+    console.log('Updated user:', updatedUser);
     res.status(200).json({
       user: updatedUser,
       message: 'Profile updated successfully'

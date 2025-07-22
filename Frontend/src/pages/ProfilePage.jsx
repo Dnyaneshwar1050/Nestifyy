@@ -26,6 +26,7 @@ const ProfilePage = () => {
   const { trackInteraction, isAuthenticated } = useContext(AppContext);
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({}); // New state for field-specific errors
   const [success, setSuccess] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -130,27 +131,25 @@ const ProfilePage = () => {
 
   // Handle form input changes with validation
   const handleInputChange = (field, value) => {
+    let fieldError = "";
     if (field === "location" && !value.trim()) {
-      setError("Location cannot be empty");
-      return;
+      fieldError = "Location cannot be empty";
+    } else if (field === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      fieldError = "Please enter a valid email address";
+    } else if (field === "phone" && value && !/^\+?\d{10,15}$/.test(value)) {
+      fieldError = "Please enter a valid phone number (10-15 digits)";
+    } else if (field === "profession" && value.length > 100) {
+      fieldError = "Profession cannot exceed 100 characters";
     }
-    if (field === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      setError("Please enter a valid email address");
-      return;
+
+    setFieldErrors((prev) => ({ ...prev, [field]: fieldError }));
+    if (!fieldError) {
+      setEditForm((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+      setError("");
     }
-    if (field === "phone" && !/^\+?\d{9,20}$/.test(value)) {
-      setError("Please enter a valid phone number (9-20 digits)");
-      return;
-    }
-    if (field === "age" && (isNaN(value) || value < 18 || value > 120)) {
-      setError("Please enter a valid age (18-120)");
-      return;
-    }
-    setEditForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-    setError("");
   };
 
   // Handle nested field changes
@@ -178,6 +177,11 @@ const ProfilePage = () => {
   };
 
   const handleSave = async () => {
+    // Check for any validation errors before saving
+    if (Object.values(fieldErrors).some((error) => error)) {
+      setError("Please fix all validation errors before saving");
+      return;
+    }
     setSaveLoading(true);
     setError("");
     setSuccess("");
@@ -189,7 +193,16 @@ const ProfilePage = () => {
 
       const formData = new FormData();
       const editableFields = { ...editForm };
-      // Allow all fields to be updated (except password)
+      // Remove non-editable fields
+      delete editableFields.name;
+      delete editableFields.gender;
+      delete editableFields.age;
+      delete editableFields._id;
+      delete editableFields.createdAt;
+      delete editableFields.updatedAt;
+      delete editableFields.__v;
+      delete editableFields.password;
+
       Object.keys(editableFields).forEach((key) => {
         if (editableFields[key] !== null && editableFields[key] !== undefined) {
           if (key === "brokerInfo" || key === "preferences") {
@@ -251,6 +264,7 @@ const ProfilePage = () => {
     setIsEditing(false);
     setEditForm(user);
     setError("");
+    setFieldErrors({});
     setSuccess("");
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
@@ -379,23 +393,9 @@ const ProfilePage = () => {
           <div className="pt-16 sm:pt-20 pb-6 px-4 sm:px-6">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={editForm.name || ""}
-                      onChange={(e) =>
-                        handleInputChange("name", e.target.value)
-                      }
-                      className="text-2xl sm:text-3xl font-bold text-black bg-transparent border-b-2 border-maroon/20 focus:border-maroon outline-none w-full"
-                      placeholder="Enter your name"
-                    />
-                  ) : (
-                    <h1 className="text-2xl sm:text-3xl font-bold text-black truncate">
-                      {user.name}
-                    </h1>
-                  )}
-                </div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-black truncate">
+                  {user.name}
+                </h1>
                 <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 mt-2 text-sm sm:text-base">
                   <div className="flex items-center text-black">
                     <Mail className="w-4 h-4 mr-2 text-maroon flex-shrink-0" />
@@ -515,21 +515,9 @@ const ProfilePage = () => {
                             Name:
                           </span>
                         </div>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={editForm.name || ""}
-                            onChange={(e) =>
-                              handleInputChange("name", e.target.value)
-                            }
-                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                            placeholder="Enter name"
-                          />
-                        ) : (
-                          <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                            {user.name || "Not specified"}
-                          </span>
-                        )}
+                        <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                          {user.name || "Not specified"}
+                        </span>
                       </div>
                       <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
@@ -538,23 +526,9 @@ const ProfilePage = () => {
                             Gender:
                           </span>
                         </div>
-                        {isEditing ? (
-                          <select
-                            value={editForm.gender || "Other"}
-                            onChange={(e) =>
-                              handleInputChange("gender", e.target.value)
-                            }
-                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                          >
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        ) : (
-                          <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                            {user.gender || "Not specified"}
-                          </span>
-                        )}
+                        <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                          {user.gender || "Not specified"}
+                        </span>
                       </div>
                       <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
@@ -563,21 +537,9 @@ const ProfilePage = () => {
                             Age:
                           </span>
                         </div>
-                        {isEditing ? (
-                          <input
-                            type="number"
-                            value={editForm.age || ""}
-                            onChange={(e) =>
-                              handleInputChange("age", e.target.value)
-                            }
-                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                            placeholder="Enter age"
-                          />
-                        ) : (
-                          <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                            {user.age || "Not specified"}
-                          </span>
-                        )}
+                        <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                          {user.age || "Not specified"}
+                        </span>
                       </div>
                       {/* <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
@@ -587,15 +549,22 @@ const ProfilePage = () => {
                           </span>
                         </div>
                         {isEditing ? (
-                          <input
-                            type="text"
-                            value={editForm.profession || ""}
-                            onChange={(e) =>
-                              handleInputChange("profession", e.target.value)
-                            }
-                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                            placeholder="Enter profession"
-                          />
+                          <div className="flex-1 relative">
+                            <input
+                              type="text"
+                              value={editForm.profession || ""}
+                              onChange={(e) =>
+                                handleInputChange("profession", e.target.value)
+                              }
+                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                              placeholder="Enter profession"
+                            />
+                            {fieldErrors.profession && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {fieldErrors.profession}
+                              </p>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
                             {user.profession || "Not specified"}
@@ -618,15 +587,22 @@ const ProfilePage = () => {
                           </span>
                         </div>
                         {isEditing ? (
-                          <input
-                            type="email"
-                            value={editForm.email || ""}
-                            onChange={(e) =>
-                              handleInputChange("email", e.target.value)
-                            }
-                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                            placeholder="Enter email"
-                          />
+                          <div className="flex-1 relative">
+                            <input
+                              type="email"
+                              value={editForm.email || ""}
+                              onChange={(e) =>
+                                handleInputChange("email", e.target.value)
+                              }
+                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                              placeholder="Enter email"
+                            />
+                            {fieldErrors.email && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {fieldErrors.email}
+                              </p>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
                             {user.email}
@@ -641,15 +617,22 @@ const ProfilePage = () => {
                           </span>
                         </div>
                         {isEditing ? (
-                          <input
-                            type="tel"
-                            value={editForm.phone || ""}
-                            onChange={(e) =>
-                              handleInputChange("phone", e.target.value)
-                            }
-                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                            placeholder="Enter phone number"
-                          />
+                          <div className="flex-1 relative">
+                            <input
+                              type="tel"
+                              value={editForm.phone || ""}
+                              onChange={(e) =>
+                                handleInputChange("phone", e.target.value)
+                              }
+                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                              placeholder="Enter phone number (e.g., +1234567890)"
+                            />
+                            {fieldErrors.phone && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {fieldErrors.phone}
+                              </p>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
                             {user.phone || "Not specified"}
@@ -664,15 +647,22 @@ const ProfilePage = () => {
                           </span>
                         </div>
                         {isEditing ? (
-                          <input
-                            type="text"
-                            value={editForm.location || ""}
-                            onChange={(e) =>
-                              handleInputChange("location", e.target.value)
-                            }
-                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                            placeholder="Enter location"
-                          />
+                          <div className="flex-1 relative">
+                            <input
+                              type="text"
+                              value={editForm.location || ""}
+                              onChange={(e) =>
+                                handleInputChange("location", e.target.value)
+                              }
+                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                              placeholder="Enter location"
+                            />
+                            {fieldErrors.location && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {fieldErrors.location}
+                              </p>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
                             {user.location || "Not specified"}
