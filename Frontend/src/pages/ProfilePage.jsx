@@ -72,9 +72,16 @@ const ProfilePage = () => {
         const userData = response.data.user || response.data;
         setUser(userData);
         setEditForm(userData);
-        if (userData.photo) {
-          setPreviewUrl(userData.photo);
-        }
+        // Set initial photo URL
+        const photoUrl = userData.photo
+          ? userData.photo.startsWith("http")
+            ? userData.photo
+            : `https://nestifyy-my3u.onrender.com/${userData.photo}`
+          : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+              userData.name
+            )}&size=96&background=004dc3&color=FFFFFF`;
+        setPreviewUrl(photoUrl);
+        console.log("Initial photo URL:", photoUrl);
         setSuccess("Profile loaded successfully!");
         trackInteraction("data_fetch", "profile_success", {
           userId: id || "current_user",
@@ -106,15 +113,6 @@ const ProfilePage = () => {
     }
   }, [id, isAuthenticated, navigate, trackInteraction]);
 
-  // Clean up preview URL on component unmount
-  useEffect(() => {
-    return () => {
-      if (previewUrl && selectedFile) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, [previewUrl, selectedFile]);
-
   // Handle file selection for photo upload
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -130,6 +128,7 @@ const ProfilePage = () => {
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
+      console.log("Preview photo URL (local):", url);
       setError("");
       setSuccess("Photo selected successfully!");
       trackInteraction("file_select", "profile_photo_edit");
@@ -192,6 +191,8 @@ const ProfilePage = () => {
     setSaveLoading(true);
     setError("");
     setSuccess("");
+    // Store current photo URL as fallback
+    const previousPhotoUrl = previewUrl;
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -234,34 +235,38 @@ const ProfilePage = () => {
         }
       );
 
-      const updatedUser = response.data.user;
-      setUser(updatedUser);
-      setEditForm(updatedUser);
+      setUser(response.data.user);
+      setEditForm(response.data.user);
       setIsEditing(false);
       setSuccess("Profile updated successfully!");
       trackInteraction("profile_management", "profile_update_success");
 
-      // Update photo display
-      if (selectedFile) {
-        if (previewUrl) {
-          URL.revokeObjectURL(previewUrl); // Clean up old preview URL
-        }
-        setPreviewUrl(updatedUser.photo || ""); // Use Cloudinary URL from backend
-        setSelectedFile(null);
+      // Update photo URL with backend response
+      const newPhotoUrl = response.data.user.photo
+        ? response.data.user.photo.startsWith("http")
+          ? response.data.user.photo
+          : `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+            response.data.user.name
+          )}&size=96&background=004dc3&color=FFFFFF`;
+      setPreviewUrl(newPhotoUrl);
+      console.log("Updated photo URL:", newPhotoUrl);
+
+      // Clean up
+      if (selectedFile && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
       }
+      setSelectedFile(null);
     } catch (err) {
       console.error("Profile update error:", err);
       setError(
         err.response?.data?.message || err.message || "Failed to update profile"
       );
+      // Revert to previous photo URL on error
+      setPreviewUrl(previousPhotoUrl);
       trackInteraction("profile_management", "profile_update_failure", {
         error: err.response?.data?.message || err.message,
       });
-      // Revert to original photo if update fails
-      if (selectedFile && user?.photo) {
-        setPreviewUrl(user.photo);
-        setSelectedFile(null);
-      }
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
         navigate("/login");
@@ -277,10 +282,18 @@ const ProfilePage = () => {
     setError("");
     setFieldErrors({});
     setSuccess("");
-    if (previewUrl && selectedFile) {
+    if (previewUrl && previewUrl.startsWith("blob:")) {
       URL.revokeObjectURL(previewUrl);
     }
-    setPreviewUrl(user?.photo || "");
+    // Restore user photo URL
+    const photoUrl = user?.photo
+      ? user.photo.startsWith("http")
+        ? user.photo
+        : `https://nestifyy-my3u.onrender.com/${user.photo}`
+      : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+          user?.name || "User"
+        )}&size=96&background=004dc3&color=FFFFFF`;
+    setPreviewUrl(photoUrl);
     setSelectedFile(null);
     trackInteraction("click", "profile_cancel_edit");
   };
@@ -372,18 +385,15 @@ const ProfilePage = () => {
             <div className="absolute -bottom-12 sm:-bottom-16 left-4 sm:left-6">
               <div className="relative">
                 <img
-                  src={
-                    previewUrl ||
-                    (user.photo
-                      ? user.photo.startsWith("http")
-                        ? user.photo
-                        : `https://nestifyy-my3u.onrender.com/${user.photo}`
-                      : `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                          user.name
-                        )}&size=96&background=004dc3&color=FFFFFF`)
-                  }
+                  src={`${previewUrl}?t=${Date.now()}`}
                   alt="Profile"
                   className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white object-cover"
+                  onError={(e) => {
+                    console.error("Image load error, falling back to avatar");
+                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      user.name || "User"
+                    )}&size=96&background=004dc3&color=FFFFFF`;
+                  }}
                 />
                 {isEditing && !id && (
                   <label className="absolute bottom-0 right-0 bg-maroon rounded-full p-1.5 sm:p-2 cursor-pointer shadow-md hover:bg-deep-maroon transition-colors">

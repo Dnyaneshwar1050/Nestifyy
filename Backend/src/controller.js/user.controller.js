@@ -40,7 +40,7 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       role: role || "user",
       age: Number(age),
-      phone: phone || "", // Allow empty phone
+      phone: phone || "",
       location,
       photo: photoUrl,
       gender: gender || "Other",
@@ -168,10 +168,17 @@ const updateUserProfile = async (req, res) => {
     // Handle photo upload
     if (req.file) {
       try {
+        // Delete old photo if it exists
         if (user.photo) {
           const publicId = user.photo.split('/').pop().split('.')[0];
           console.log('Deleting previous photo with publicId:', publicId);
-          await deleteImage(publicId);
+          try {
+            await deleteImage(publicId);
+            console.log('Old photo deleted successfully');
+          } catch (deleteError) {
+            console.error('Error deleting old photo:', deleteError);
+            // Continue with upload even if deletion fails to avoid blocking
+          }
         }
         const result = await uploadImage(req.file);
         console.log('New photo uploaded:', result);
