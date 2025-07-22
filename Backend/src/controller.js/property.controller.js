@@ -1,6 +1,7 @@
 import { Property } from "../models/property.model.js";
 import { uploadImage, deleteImage } from "../utils/cloudinary.js";
 import fs from "fs/promises";
+import mongoose from 'mongoose';
 import jwt from "jsonwebtoken";
 
 const createproperty = async (req, res) => {
@@ -339,6 +340,7 @@ const searchProperties = async (req, res) => {
 const getMyProperties = async (req, res) => {
   try {
     const ownerId = req.user?._id || req.user?.id;
+    console.log("getMyProperties: req.user:", req.user);
     console.log("getMyProperties: ownerId:", ownerId);
 
     if (!ownerId) {
@@ -346,8 +348,14 @@ const getMyProperties = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized: No user ID found" });
     }
 
+    // Validate ownerId as a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(ownerId)) {
+      console.error("getMyProperties: Invalid ownerId:", ownerId);
+      return res.status(400).json({ message: "Invalid user ID format" });
+    }
+
     const properties = await Property.find({ owner: ownerId })
-      .populate("owner", "name email phone")
+      .populate({ path: "owner", select: "name email phone", strictPopulate: false })
       .lean()
       .catch((err) => {
         console.error("getMyProperties: MongoDB query error:", {
