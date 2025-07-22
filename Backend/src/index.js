@@ -3,13 +3,11 @@ import DBConection from './db/db.js';
 import { app } from './app.js';
 
 
-const uploadDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log("Created uploads directory:", uploadDir);
-} 
+dotenv.config({
+    path: './env'
+})
 
-
+ 
 DBConection()
 .then(() => {
     app.listen(process.env.PORT ||8080, ()=>{
