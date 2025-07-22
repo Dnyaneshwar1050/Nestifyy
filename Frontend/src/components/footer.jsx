@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
-import { Home, Instagram, Facebook, MessageCircle } from 'lucide-react'; // Updated to include Instagram and WhatsApp icons
+import { Home, Instagram, Facebook, MessageCircle, MapPin, PhoneCall, Mail } from 'lucide-react';
 
 const Footer = () => {
   const { trackInteraction } = useContext(AppContext);
