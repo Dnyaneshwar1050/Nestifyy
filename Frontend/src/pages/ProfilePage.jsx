@@ -49,41 +49,62 @@ const ProfilePage = () => {
 
   // Fetch user profile on component mount
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchUser = async () => {
       setLoading(true);
+      setError("");
+      setSuccess("");
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('No authentication token found');
+        const token = localStorage.getItem("token");
+        if (!token && !id) {
+          throw new Error("No authentication token found");
         }
-        
-        const response = await axios.get(`https://nestifyy-my3u.onrender.com/api/users/profile`, {
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
+
+        const apiUrl = id
+          ? `https://nestifyy-my3u.onrender.com/api/user/${id}`
+          : `https://nestifyy-my3u.onrender.com/api/user/profile`;
+        const response = await axios.get(apiUrl, {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : undefined,
+            "Content-Type": "application/json",
           },
         });
-        
-        setUser(response.data);
-        setEditForm(response.data);
-        setError('');
+
+        const userData = response.data.user || response.data;
+        setUser(userData);
+        setEditForm(userData);
+        if (userData.photo) {
+          setPreviewUrl(userData.photo);
+        }
+        setSuccess("Profile loaded successfully!");
+        trackInteraction("data_fetch", "profile_success", {
+          userId: id || "current_user",
+        });
       } catch (err) {
-        console.error('Profile fetch error:', err);
-        const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch profile';
+        console.error("Profile fetch error:", err);
+        const errorMessage =
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to fetch profile";
         setError(errorMessage);
-        
-        // Redirect to login if token is invalid
-        if (err.response?.status === 401 || errorMessage.includes('token')) {
-          localStorage.removeItem('token');
-          navigate('/login');
+        trackInteraction("data_fetch", "profile_failure", {
+          userId: id || "current_user",
+          error: errorMessage,
+        });
+        if (err.response?.status === 401 || errorMessage.includes("token")) {
+          localStorage.removeItem("token");
+          navigate("/login");
         }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProfile();
-  }, [navigate]);
+    if (!id && !isAuthenticated) {
+      navigate("/login");
+    } else {
+      fetchUser();
+    }
+  }, [id, isAuthenticated, navigate, trackInteraction]);
 
   // Handle file selection for photo upload
   const handleFileChange = (e) => {
@@ -108,7 +129,7 @@ const ProfilePage = () => {
     }
   };
 
-  // Handle form input changes
+  // Handle form input changes with validation
   const handleInputChange = (field, value) => {
     setEditForm(prev => ({
       ...prev,
@@ -118,13 +139,12 @@ const ProfilePage = () => {
 
   // Toggle section expansion
   const toggleSection = (section) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [section]: !prev[section]
+      [section]: !prev[section],
     }));
   };
 
-  // Save profile changes
   const handleSave = async () => {
     setSaveLoading(true);
     setError('');
@@ -192,23 +212,22 @@ const ProfilePage = () => {
       setSaveLoading(false);
     }
   };
-
-  // Cancel editing
   const handleCancel = () => {
     setIsEditing(false);
     setEditForm(user);
-    setError('');
-    setSuccess('');
-    
-    // Clean up file preview
+    setError("");
+    setFieldErrors({});
+    setSuccess("");
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
-    setPreviewUrl('');
+    setPreviewUrl(
+      user?.photo ? user.photo.startsWith("http") ? user.photo : `https://nestifyy-my3u.onrender.com/${user.photo}` : ""
+    );
     setSelectedFile(null);
+    trackInteraction("click", "profile_cancel_edit");
   };
 
-  
   // Loading state
   if (loading) {
     return (

@@ -22,7 +22,7 @@ import roomRequestRouter from "./routers/roomRequest.router.js"
 
 
 //decleration routes
-app.use("/api/user", userRouter)
+app.use("/api/user", userRouter);
 app.use('/api/property', propertyRouter);
 app.use("/api/subscription", subscriptionRouter)
 app.use("/api/room-request", roomRequestRouter);
