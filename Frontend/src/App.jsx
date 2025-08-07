@@ -20,11 +20,14 @@ import ProfilePage from './pages/ProfilePage.jsx';
 import ProfileDetailPage from './pages/ProfileDetailPage';
 import FeedbackPage from './pages/FeedbackPage';
 import DashboardPage from './pages/DashboardPage';
-import AdminPanelPage from './pages/AdminPanelPage';
-import SuperAdminPanelPage from './pages/SuperAdminPanelPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PropertyDetailPage from './pages/PropertyDetailPage';
 
+// admin routes 
+import AdminDashboard from './pages/admin/AdminDashboard.jsx';
+import Properties from './pages/admin/Properties.jsx';
+import AdminLayout from './pages/admin/AdminLayout.jsx';
+import StatsCard from './pages/admin/StatsCard.jsx';
 
 
 
@@ -36,6 +39,12 @@ const App = () => {
           <Navbar />
           <div className="flex-grow"> {/* This div ensures content pushes footer down */}
             <Routes>
+              {/* Admin Routes */}
+              <Route path="/admin-panel" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="properties" element={<Properties />} />
+                <Route path="stats" element={<StatsCard />} />
+              </Route>
               <Route path="/" element={<HomePage />} />
               <Route path="/find-room" element={<FindRoomPage />} />
               <Route path="/find-roommate" element={<FindRoommatePage />} />
@@ -48,8 +57,6 @@ const App = () => {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/admin-panel" element={<AdminPanelPage />} />
-              <Route path="/super-admin-panel" element={<SuperAdminPanelPage />} /> 
               <Route path="/property/:id" element={<PropertyDetailPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
