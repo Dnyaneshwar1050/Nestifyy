@@ -24,10 +24,10 @@ import NotFoundPage from './pages/NotFoundPage';
 import PropertyDetailPage from './pages/PropertyDetailPage';
 
 // admin routes 
-import AdminDashboard from './pages/admin/AdminDashboard.jsx';
-import Properties from './pages/admin/Properties.jsx';
 import AdminLayout from './pages/admin/AdminLayout.jsx';
-import StatsCard from './pages/admin/StatsCard.jsx';
+import AdminDashboard from './pages/admin/AdminDashboard.jsx';
+import UsersManagement from './pages/admin/UsersManagement.jsx';
+import PropertiesManagement from './pages/admin/PropertiesManagement.jsx';
 
 
 
@@ -42,8 +42,8 @@ const App = () => {
               {/* Admin Routes */}
               <Route path="/admin-panel" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
-                <Route path="properties" element={<Properties />} />
-                <Route path="stats" element={<StatsCard />} />
+                <Route path="users" element={<UsersManagement />} />
+                <Route path="properties" element={<PropertiesManagement />} />
               </Route>
               <Route path="/" element={<HomePage />} />
               <Route path="/find-room" element={<FindRoomPage />} />
