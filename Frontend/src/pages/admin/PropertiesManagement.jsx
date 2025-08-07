@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { Edit, Trash, Search, Home, ChevronLeft, ChevronRight, X, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { AppContext } from '../context/AppContext';
+import { AppContext } from '../../context/AppContext.jsx';
 
 const PropertiesManagement = () => {
   const { trackInteraction } = useContext(AppContext);

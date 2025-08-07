@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { Users, Home, MessageSquare, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { AppContext } from '../context/AppContext';
+import { AppContext } from '../../context/AppContext.jsx';
 
 const AdminDashboard = () => {
   const { trackInteraction } = useContext(AppContext);

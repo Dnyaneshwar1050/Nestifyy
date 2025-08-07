@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { Edit, Trash, Search, UserPlus, ChevronLeft, ChevronRight, Shield, ShieldOff, X, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { AppContext } from '../context/AppContext';
+import { AppContext } from '../../context/AppContext.jsx';
 
 const UsersManagement = () => {
   const { trackInteraction } = useContext(AppContext);

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, Home, LogOut } from 'lucide-react';
-import { AppContext } from '../context/AppContext';
+import { AppContext } from '../../context/AppContext.jsx';
 
 const AdminLayout = () => {
   const { trackInteraction, isAdmin } = useContext(AppContext);
