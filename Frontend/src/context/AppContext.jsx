@@ -6,6 +6,7 @@ export const AppContext = createContext();
 
 export const AppContextProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [userId, setUserId] = useState(null);
   const [userRole, setUserRole] = useState(
     localStorage.getItem("userRole") || ""
@@ -41,6 +42,44 @@ export const AppContextProvider = ({ children }) => {
       setUserRole("");
     }
   }, []);
+  
+  const checkAuthAndAdmin = async () => {
+      const token = localStorage.getItem('token');
+      
+      if (token) {
+        try {
+          // Verify token is still valid
+          const response = await fetch('https://nestifyy-my3u.onrender.com/api/user/profile', {
+            headers:
+             {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setIsAuthenticated(true);
+            setIsAdmin(userData.isAdmin === true);
+          } else {
+            // Token is invalid, remove it
+            localStorage.removeItem('token');
+            setIsAuthenticated(false);
+            setIsAdmin(false);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          // On error, assume token is invalid
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setIsAdmin(false);
+      }
+    };
+
 
   const handleLogin = (token, user) => {
     localStorage.setItem("token", token);
@@ -77,9 +116,11 @@ export const AppContextProvider = ({ children }) => {
         isAuthenticated,
         userId,
         userRole,
+        isAdmin,
         trackInteraction,
         handleLogout,
         handleLogin,
+        checkAuthAndAdmin
       }}
     >
       {children}

@@ -13,7 +13,7 @@ import {
 import { AppContext } from "../context/AppContext";
 
 const Navbar = () => {
-  const { isAuthenticated, isAdmin, userRole, trackInteraction, handleLogout } =
+  const { isAuthenticated, isAdmin, userRole, trackInteraction, handleLogout, checkAuthAndAdmin } =
     useContext(AppContext);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
@@ -21,6 +21,7 @@ const Navbar = () => {
   const cityDropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const navigate = useNavigate();
+  checkAuthAndAdmin();
 
   const cities = [
     "Pune",

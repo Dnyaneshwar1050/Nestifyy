@@ -39,7 +39,9 @@ const userSchema = new mongoose.Schema(
         type: String,
         enum: ['Male', 'Female', 'Other'],
         default: 'Other'
-    }
+    },
+    // Role information
+    isAdmin: { type: Boolean, default: false },
   },
 
   { timestamps: true }
