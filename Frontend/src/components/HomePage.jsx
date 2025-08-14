@@ -85,7 +85,7 @@ const HomePage = () => {
       const apiUrl = import.meta.env.VITE_API_URL || "https://nestifyy-my3u.onrender.com";
       const url = query
         ? `${apiUrl}/api/room-request/search?search=${encodeURIComponent(query)}`
-        : `${apiUrl}/api/room-request`;
+        : `${apiUrl}/api/room-request/all`;
       const response = await axios.get(url, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,

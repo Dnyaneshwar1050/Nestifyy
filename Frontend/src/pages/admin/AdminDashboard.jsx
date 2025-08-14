@@ -1,5 +1,5 @@
-import { useState, useEffect, useContext } from 'react';
-import { Users, Home, MessageSquare, Calendar } from 'lucide-react';
+import React, { useState, useEffect, useContext } from 'react';
+import { Users, Home, MessageSquare, Calendar, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext.jsx';
 
@@ -18,8 +18,14 @@ const AdminDashboard = () => {
   const API_URL = 'https://nestifyy-my3u.onrender.com/api';
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    if (!dateString) return 'Unknown date';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      return 'Invalid date';
+    }
   };
 
   useEffect(() => {
@@ -35,66 +41,80 @@ const AdminDashboard = () => {
           return;
         }
 
-        // Fetch user count
-        const userResponse = await fetch(`${API_URL}/user/count`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        const userData = await userResponse.json();
+        // Define all API fetches
+        const fetches = [
+          fetch(`${API_URL}/user/all`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }),
+          fetch(`${API_URL}/property/all`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }),
+          fetch(`${API_URL}/room-request/all`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }),
+          fetch(`${API_URL}/user/all?page=1&limit=5`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }),
+          fetch(`${API_URL}/property/all?page=1&limit=5`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+        ];
+
+        // Execute all fetches in parallel
+        const [
+          userResponse,
+          propertyResponse,
+          roomRequestResponse,
+          recentUsersResponse,
+          recentPropertiesResponse
+        ] = await Promise.all(fetches);
+
+        // Parse responses
+        const userData = userResponse.ok ? await userResponse.json() : { pagination: { total: 0 } };
+        const propertyData = propertyResponse.ok ? await propertyResponse.json() : { pagination: { total: 0 } };
+        const roomRequestData = roomRequestResponse.ok ? await roomRequestResponse.json() : { pagination: { total: 0 } };
+        const recentUsersData = recentUsersResponse.ok ? await recentUsersResponse.json() : { users: [] };
+        const recentPropertiesData = recentPropertiesResponse.ok ? await recentPropertiesResponse.json() : { properties: [] };
+
+        // Check for errors
         if (!userResponse.ok) throw new Error(userData.message || 'Failed to fetch user count');
-
-        // Fetch property count
-        const propertyResponse = await fetch(`${API_URL}/property/count`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        const propertyData = await propertyResponse.json();
         if (!propertyResponse.ok) throw new Error(propertyData.message || 'Failed to fetch property count');
-
-        // Fetch room request count
-        const roomRequestResponse = await fetch(`${API_URL}/room-request/count`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        const roomRequestData = await roomRequestResponse.json();
         if (!roomRequestResponse.ok) throw new Error(roomRequestData.message || 'Failed to fetch room request count');
-
-        // Fetch recent users
-        const recentUsersResponse = await fetch(`${API_URL}/user?page=1&limit=5`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        const recentUsersData = await recentUsersResponse.json();
         if (!recentUsersResponse.ok) throw new Error(recentUsersData.message || 'Failed to fetch recent users');
-
-        // Fetch recent properties
-        const recentPropertiesResponse = await fetch(`${API_URL}/property/all?page=1&limit=5`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        const recentPropertiesData = await recentPropertiesResponse.json();
         if (!recentPropertiesResponse.ok) throw new Error(recentPropertiesData.message || 'Failed to fetch recent properties');
 
+        // Update state with fetched data
         setStats({
-          userCount: userData.count || 0,
-          propertyCount: propertyData.count || 0,
-          roomRequestCount: roomRequestData.count || 0,
+          userCount: userData.pagination?.total || (Array.isArray(userData.users) ? userData.users.length : 0),
+          propertyCount: propertyData.pagination?.total || (Array.isArray(propertyData.properties) ? propertyData.properties.length : 0),
+          roomRequestCount: roomRequestData.pagination?.total || (Array.isArray(roomRequestData.roomRequests) ? roomRequestData.roomRequests.length : 0),
           recentUsers: recentUsersData.users || [],
           recentProperties: recentPropertiesData.properties || []
         });
+
         trackInteraction('data_fetch', 'admin_dashboard_fetch_success');
       } catch (err) {
-        console.error('Error fetching dashboard data:', err);
+        console.error('Error fetching dashboard data:', err.message);
         setError('Failed to load dashboard data. Please try again.');
         trackInteraction('data_fetch', 'admin_dashboard_fetch_failure', { error: err.message });
       } finally {
@@ -130,21 +150,21 @@ const AdminDashboard = () => {
           <Users className="h-10 w-10 text-blue-600 mr-4" />
           <div>
             <p className="text-sm text-gray-500">Total Users</p>
-            <p className="text-2xl font-bold text-gray-800">{stats.userCount}</p>
+            <p className="text-2xl font-bold text-gray-800">{stats.userCount.toLocaleString()}</p>
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6 flex items-center">
           <Home className="h-10 w-10 text-blue-600 mr-4" />
           <div>
             <p className="text-sm text-gray-500">Total Properties</p>
-            <p className="text-2xl font-bold text-gray-800">{stats.propertyCount}</p>
+            <p className="text-2xl font-bold text-gray-800">{stats.propertyCount.toLocaleString()}</p>
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6 flex items-center">
           <MessageSquare className="h-10 w-10 text-blue-600 mr-4" />
           <div>
             <p className="text-sm text-gray-500">Room Requests</p>
-            <p className="text-2xl font-bold text-gray-800">{stats.roomRequestCount}</p>
+            <p className="text-2xl font-bold text-gray-800">{stats.roomRequestCount.toLocaleString()}</p>
           </div>
         </div>
       </div>

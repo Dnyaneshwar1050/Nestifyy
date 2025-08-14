@@ -298,10 +298,36 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const getAllUsers = async (req, res) => {
+  try {
+    // Verify admin status
+    const requestingUserId = req.user.id;
+    const requestingUser = await User.findById(requestingUserId);
+
+    if (!requestingUser || !requestingUser.isAdmin) {
+      return res
+        .status(403)
+        .json({ message: "Only admins can view all users" });
+    }
+
+    const users = await User.find().select("-password");
+
+    res.status(200).json({
+      users,
+      count: users.length,
+      message: "Users retrieved successfully",
+    });
+  } catch (error) {
+    console.error("Error in getAllUsers:", error);
+    res.status(500).json({ message: "Server error, please try again later" });
+  }
+};
+
 export {
   registerUser,
   loginUser,
   updateUserProfile,
+  getAllUsers,
   deleteUser,
   updateUser,
   getUserProfile,
