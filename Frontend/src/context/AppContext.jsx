@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 export const AppContext = createContext();
 
+
 export const AppContextProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -11,36 +12,44 @@ export const AppContextProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(
     localStorage.getItem("userRole") || ""
   );
+  const [authLoading, setAuthLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        if (decoded.exp * 1000 > Date.now()) {
-          setIsAuthenticated(true);
-          setUserId(decoded.id || decoded._id);
-          setUserRole(decoded.role || localStorage.getItem("userRole") || "");
-        } else {
+    const checkAllAuth = async () => {
+      setAuthLoading(true);
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
+          if (decoded.exp * 1000 > Date.now()) {
+            setIsAuthenticated(true);
+            setUserId(decoded.id || decoded._id);
+            setUserRole(decoded.role || localStorage.getItem("userRole") || "");
+          } else {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userRole");
+            setIsAuthenticated(false);
+            setUserId(null);
+            setUserRole("");
+          }
+        } catch (error) {
           localStorage.removeItem("token");
           localStorage.removeItem("userRole");
           setIsAuthenticated(false);
           setUserId(null);
           setUserRole("");
         }
-      } catch (error) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("userRole");
+      } else {
         setIsAuthenticated(false);
         setUserId(null);
         setUserRole("");
       }
-    } else {
-      setIsAuthenticated(false);
-      setUserId(null);
-      setUserRole("");
-    }
+      // Always check admin status on mount
+      await checkAuthAndAdmin();
+      setAuthLoading(false);
+    };
+    checkAllAuth();
   }, []);
   
   const checkAuthAndAdmin = async () => {
@@ -117,6 +126,7 @@ export const AppContextProvider = ({ children }) => {
         userId,
         userRole,
         isAdmin,
+        authLoading,
         trackInteraction,
         handleLogout,
         handleLogin,

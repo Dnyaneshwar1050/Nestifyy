@@ -1,5 +1,5 @@
-import { useState, useEffect, useContext } from 'react';
-import { Edit, Trash, Search, Home, ChevronLeft, ChevronRight, X, Eye } from 'lucide-react';
+import React, { useState, useEffect, useContext } from 'react';
+import { Edit, Trash, Search, Home, ChevronLeft, ChevronRight, X, Eye, AlertCircle, CheckCircle, Car, Sofa, Wind, Tv, WashingMachine, Wifi, BatteryCharging, ShieldCheck, ArrowUp, Dumbbell, Waves, Building2, } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext.jsx';
 
@@ -14,14 +14,22 @@ const PropertiesManagement = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [formData, setFormData] = useState({
-    title: '',
-    city: '',
-    rent: '',
-    propertyType: '',
-    noOfBedroom: '',
-    bathrooms: '',
-    status: 'Active'
-  });
+  title: '',
+  description: '',
+  propertyType: '',
+  bhkType: '',
+  noOfBedroom: '',
+  bathrooms: '',
+  area: '',
+  rent: '',
+  deposit: '',
+  city: '',
+  location: '',
+  amenities: [],
+  allowBroker: '',
+  status: 'Active',
+  images: [], // Add images field
+});
   const [formErrors, setFormErrors] = useState({});
   const [processingAction, setProcessingAction] = useState(false);
   const [actionSuccess, setActionSuccess] = useState('');
@@ -35,6 +43,29 @@ const PropertiesManagement = () => {
   useEffect(() => {
     fetchProperties();
   }, [currentPage, filters]);
+
+  const amenitiesOptions = [
+    { value: 'Parking', icon: Car },
+    { value: 'Furnished', icon: Sofa },
+    { value: 'AC', icon: Wind },
+    { value: 'TV', icon: Tv },
+    { value: 'Washing Machine', icon: WashingMachine },
+    { value: 'Wifi', icon: Wifi },
+    { value: 'Power Backup', icon: BatteryCharging },
+    { value: 'Security', icon: ShieldCheck },
+    { value: 'Lift', icon: ArrowUp },
+    { value: 'Gym', icon: Dumbbell },
+    { value: 'Swimming Pool', icon: Waves },
+    { value: 'Club House', icon: Building2 },
+  ];
+
+  const handleFileChange = (e) => {
+  const files = Array.from(e.target.files);
+  setFormData((prev) => ({
+    ...prev,
+    images: files,
+  }));
+};
 
   const fetchProperties = async () => {
     try {
@@ -96,6 +127,7 @@ const PropertiesManagement = () => {
     if (!formData.bathrooms) errors.bathrooms = 'Number of bathrooms is required';
     else if (isNaN(formData.bathrooms) || formData.bathrooms <= 0) errors.bathrooms = 'Number of bathrooms must be a positive number';
     if (!formData.status) errors.status = 'Status is required';
+    if (!formData.images || formData.images.length === 0) errors.images = 'At least one image is required';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -116,7 +148,7 @@ const PropertiesManagement = () => {
     setProcessingAction(true);
     try {
       const token = localStorage.getItem('token');
-      const url = selectedProperty ? `${API_URL}/property/${selectedProperty._id}` : `${API_URL}/property`;
+      const url = selectedProperty ? `${API_URL}/property/${selectedProperty._id}` : `${API_URL}/property/register`;
       const method = selectedProperty ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -180,7 +212,14 @@ const PropertiesManagement = () => {
       propertyType: property.propertyType,
       noOfBedroom: property.noOfBedroom,
       bathrooms: property.bathrooms || '',
-      status: property.status || 'Active'
+      status: property.status || 'Active',
+      description: property.description || '',
+      bhkType: property.bhkType || '',
+      area: property.area || '',
+      deposit: property.deposit || '',
+      location: property.location || '',
+      amenities: property.amenities || [],
+      allowBroker: property.allowBroker || 'yes'
     });
     setShowModal(true);
     trackInteraction('click', 'edit_property');
@@ -188,184 +227,224 @@ const PropertiesManagement = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-white"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-500 border-t-transparent"></div>
+          <p className="text-gray-600 font-medium">Loading properties...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Properties Management</h1>
-
-      {error && (
-        <div className="bg-red-error-bg border border-red-error-border text-red-error-text px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
-          <AlertCircle size={20} />
-          <p>{error}</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">Properties Management</h1>
+          <p className="text-gray-600">Manage and organize your property listings</p>
         </div>
-      )}
-      {actionSuccess && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
-          <CheckCircle size={20} />
-          <p>{actionSuccess}</p>
-        </div>
-      )}
 
-      {/* Filters and Search */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
-          <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
-            Search Properties
-          </label>
-          <div className="flex">
-            <input
-              type="text"
-              id="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder="Search by title or city"
-            />
+        {/* Alerts */}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-800 px-6 py-4 rounded-lg mb-6 flex items-center gap-3 shadow-sm">
+            <AlertCircle size={20} className="text-red-500" />
+            <p className="font-medium">{error}</p>
+          </div>
+        )}
+        {actionSuccess && (
+          <div className="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-800 px-6 py-4 rounded-lg mb-6 flex items-center gap-3 shadow-sm">
+            <CheckCircle size={20} className="text-emerald-500" />
+            <p className="font-medium">{actionSuccess}</p>
+          </div>
+        )}
+
+        {/* Controls Section */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
+          {/* Filters and Search */}
+          <div className="mb-6 grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <div className="lg:col-span-2">
+              <label htmlFor="search" className="block text-sm font-semibold text-gray-700 mb-2">
+                Search Properties
+              </label>
+              <div className="flex">
+                <input
+                  type="text"
+                  id="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-l-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                  placeholder="Search by title or city..."
+                />
+                <button
+                  onClick={handleSearch}
+                  className="px-6 py-3 bg-emerald-600 text-white rounded-r-xl hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors"
+                >
+                  <Search className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            <div>
+              <label htmlFor="typeFilter" className="block text-sm font-semibold text-gray-700 mb-2">
+                Property Type
+              </label>
+              <select
+                id="typeFilter"
+                value={filters.propertyType}
+                onChange={(e) => handleFilter('propertyType', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+              >
+                <option value="">All Types</option>
+                <option value="Apartment">Apartment</option>
+                <option value="House">House</option>
+                <option value="Studio">Studio</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="statusFilter" className="block text-sm font-semibold text-gray-700 mb-2">
+                Status
+              </label>
+              <select
+                id="statusFilter"
+                value={filters.status}
+                onChange={(e) => handleFilter('status', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+              >
+                <option value="">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Add Property Button */}
+          <button
+            onClick={() => {
+              setSelectedProperty(null);
+              setFormData({ title: '', city: '', rent: '', propertyType: '', noOfBedroom: '', bathrooms: '', status: 'Active' });
+              setShowModal(true);
+              trackInteraction('click', 'add_property');
+            }}
+            className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl hover:from-emerald-700 hover:to-emerald-800 flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <Home className="h-5 w-5" />
+            Add New Property
+          </button>
+        </div>
+
+        {/* Properties Table */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Title</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">City</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Rent</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Bedrooms</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {properties.map((property, index) => (
+                  <tr key={property._id} className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{property.title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{property.city}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-emerald-700">₹{property.rent.toLocaleString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        {property.propertyType}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{property.noOfBedroom}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
+                        property.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {property.status || 'Active'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-3">
+                        <Link
+                          to={`/property/${property._id}`}
+                          className="text-indigo-600 hover:text-indigo-800 p-2 hover:bg-indigo-50 rounded-lg transition-colors"
+                          onClick={() => trackInteraction('click', 'view_property')}
+                          title="View Property"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                        <button
+                          onClick={() => handleEdit(property)}
+                          className="text-amber-600 hover:text-amber-800 p-2 hover:bg-amber-50 rounded-lg transition-colors"
+                          title="Edit Property"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(property._id)}
+                          className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete Property"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
             <button
-              onClick={handleSearch}
-              className="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-2"
             >
-              <Search className="h-5 w-5" />
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </button>
+            <span className="text-sm text-gray-600 font-medium">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-2"
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         </div>
-        <div>
-          <label htmlFor="typeFilter" className="block text-sm font-medium text-gray-700 mb-1">
-            Filter by Type
-          </label>
-          <select
-            id="typeFilter"
-            value={filters.propertyType}
-            onChange={(e) => handleFilter('propertyType', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          >
-            <option value="">All Types</option>
-            <option value="Apartment">Apartment</option>
-            <option value="House">House</option>
-            <option value="Studio">Studio</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700 mb-1">
-            Filter by Status
-          </label>
-          <select
-            id="statusFilter"
-            value={filters.status}
-            onChange={(e) => handleFilter('status', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-          >
-            <option value="">All Statuses</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Add Property Button */}
-      <div className="mb-6">
-        <button
-          onClick={() => {
-            setSelectedProperty(null);
-            setFormData({ title: '', city: '', rent: '', propertyType: '', noOfBedroom: '', bathrooms: '', status: 'Active' });
-            setShowModal(true);
-            trackInteraction('click', 'add_property');
-          }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
-        >
-          <Home className="h-5 w-5 mr-2" />
-          Add Property
-        </button>
-      </div>
-
-      {/* Properties Table */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">City</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rent</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bedrooms</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {properties.map((property) => (
-              <tr key={property._id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{property.title}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{property.city}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹{property.rent.toLocaleString()}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{property.propertyType}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{property.noOfBedroom}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{property.status || 'Active'}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <Link
-                    to={`/property/${property._id}`}
-                    className="text-blue-600 hover:text-blue-800 mr-4"
-                    onClick={() => trackInteraction('click', 'view_property')}
-                  >
-                    <Eye className="h-5 w-5" />
-                  </Link>
-                  <button
-                    onClick={() => handleEdit(property)}
-                    className="text-blue-600 hover:text-blue-800 mr-4"
-                  >
-                    <Edit className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(property._id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <Trash className="h-5 w-5" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      <div className="mt-6 flex justify-between items-center">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <span>Page {currentPage} of {totalPages}</span>
-        <button
-          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
       </div>
 
       {/* Modal for Add/Edit Property */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">{selectedProperty ? 'Edit Property' : 'Add Property'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700">
-                <X className="h-5 w-5" />
-              </button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white rounded-t-2xl border-b border-gray-200 px-6 py-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  {selectedProperty ? 'Edit Property' : 'Add Property'}
+                </h2>
+                <button 
+                  onClick={() => setShowModal(false)} 
+                  className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                  Title
+            
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Property Title *
                 </label>
                 <input
                   type="text"
@@ -373,13 +452,15 @@ const PropertiesManagement = () => {
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                  placeholder="Enter property title"
                 />
-                {formErrors.title && <p className="text-red-500 text-xs mt-1">{formErrors.title}</p>}
+                {formErrors.title && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.title}</p>}
               </div>
-              <div className="mb-4">
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                  City
+
+              <div>
+                <label htmlFor="city" className="block text-sm font-semibold text-gray-700 mb-2">
+                  City *
                 </label>
                 <input
                   type="text"
@@ -387,13 +468,15 @@ const PropertiesManagement = () => {
                   name="city"
                   value={formData.city}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                  placeholder="Enter city name"
                 />
-                {formErrors.city && <p className="text-red-500 text-xs mt-1">{formErrors.city}</p>}
+                {formErrors.city && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.city}</p>}
               </div>
-              <div className="mb-4">
-                <label htmlFor="rent" className="block text-sm font-medium text-gray-700 mb-1">
-                  Rent
+
+              <div>
+                <label htmlFor="rent" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Monthly Rent (₹) *
                 </label>
                 <input
                   type="number"
@@ -401,93 +484,219 @@ const PropertiesManagement = () => {
                   name="rent"
                   value={formData.rent}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                  placeholder="Enter monthly rent"
                 />
-                {formErrors.rent && <p className="text-red-500 text-xs mt-1">{formErrors.rent}</p>}
+                {formErrors.rent && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.rent}</p>}
               </div>
-              <div className="mb-4">
-                <label htmlFor="propertyType" className="block text-sm font-medium text-gray-700 mb-1">
-                  Property Type
+
+              <div>
+                <label htmlFor="propertyType" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Property Type *
                 </label>
                 <select
                   id="propertyType"
                   name="propertyType"
                   value={formData.propertyType}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 >
-                  <option value="">Select Type</option>
+                  <option value="">Select property type</option>
                   <option value="Apartment">Apartment</option>
                   <option value="House">House</option>
                   <option value="Studio">Studio</option>
                 </select>
-                {formErrors.propertyType && <p className="text-red-500 text-xs mt-1">{formErrors.propertyType}</p>}
+                {formErrors.propertyType && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.propertyType}</p>}
               </div>
-              <div className="mb-4">
-                <label htmlFor="noOfBedroom" className="block text-sm font-medium text-gray-700 mb-1">
-                  Bedrooms
-                </label>
-                <input
-                  type="number"
-                  id="noOfBedroom"
-                  name="noOfBedroom"
-                  value={formData.noOfBedroom}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-                {formErrors.noOfBedroom && <p className="text-red-500 text-xs mt-1">{formErrors.noOfBedroom}</p>}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="bedrooms" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Bedrooms *
+                  </label>
+                  <input
+                    type="number"
+                    id="bedrooms"
+                    name="bedrooms"
+                    value={formData.bedrooms}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                    placeholder="0"
+                  />
+                  {formErrors.noOfBedroom && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.noOfBedroom}</p>}
+                </div>
+                
+                <div>
+                  <label htmlFor="bathrooms" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Bathrooms *
+                  </label>
+                  <input
+                    type="number"
+                    id="bathrooms"
+                    name="bathrooms"
+                    value={formData.bathrooms}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                    placeholder="0"
+                  />
+                  {formErrors.bathrooms && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.bathrooms}</p>}
+                </div>
               </div>
-              <div className="mb-4">
-                <label htmlFor="bathrooms" className="block text-sm font-medium text-gray-700 mb-1">
-                  Bathrooms
-                </label>
-                <input
-                  type="number"
-                  id="bathrooms"
-                  name="bathrooms"
-                  value={formData.bathrooms}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-                {formErrors.bathrooms && <p className="text-red-500 text-xs mt-1">{formErrors.bathrooms}</p>}
-              </div>
-              <div className="mb-4">
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
+
+              <div>
+                <label htmlFor="status" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Status *
                 </label>
                 <select
                   id="status"
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
                 </select>
-                {formErrors.status && <p className="text-red-500 text-xs mt-1">{formErrors.status}</p>}
+                {formErrors.status && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.status}</p>}
               </div>
-              <div className="flex justify-end space-x-3">
+              <div>
+                <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Description *
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                  placeholder="Property description"
+                />
+                {formErrors.description && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.description}</p>}
+              </div>
+
+              {/* <div>
+                <label htmlFor="bhkType" className="block text-sm font-semibold text-gray-700 mb-2">
+                  BHK Type *
+                </label>
+                <select
+                  id="bhkType"
+                  name="bhkType"
+                  value={formData.bhkType}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                >
+                  <option value="1 BHK">1 BHK</option>
+                  <option value="2 BHK">2 BHK</option>
+                  <option value="3 BHK">3 BHK</option>
+                </select>
+                {formErrors.bhkType && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.bhkType}</p>}
+              </div> */}
+
+              <div>
+                <label htmlFor="area" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Area (in sq. ft.) *
+                </label>
+                <input
+                  id="area"
+                  name="area"
+                  type="number"
+                  value={formData.area}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                  placeholder="Property area"
+                />
+                {formErrors.area && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.area}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="price" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Price *
+                </label>
+                <input
+                  id="price"
+                  name="price"
+                  type="number"
+                  value={formData.price}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                  placeholder="Property price"
+                />
+                {formErrors.price && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.price}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="location" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Location *
+                </label>
+                <input
+                  id="location"
+                  name="location"
+                  type="text"
+                  value={formData.location}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                  placeholder="Property location"
+                />
+                {formErrors.location && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.location}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Description *
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                  placeholder="Property description"
+                />
+                {formErrors.description && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.description}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="images" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Images *
+                </label>
+                <input
+                  id="images"
+                  name="images"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                />
+                {formErrors.images && <p className="text-red-500 text-xs mt-1 font-medium">{formErrors.images}</p>}
+              </div>
+
+              
+
+              <div className="flex justify-end space-x-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-semibold transition-colors"
                   disabled={processingAction}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                  className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl hover:from-emerald-700 hover:to-emerald-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
                   disabled={processingAction}
                 >
                   {processingAction ? (
                     <>
-                      <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full"></div>
+                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
                       {selectedProperty ? 'Updating...' : 'Creating...'}
                     </>
                   ) : (
-                    selectedProperty ? 'Update Property' : 'Create Property'
+                    <>
+                      <Home className="h-4 w-4" />
+                      {selectedProperty ? 'Update Property' : 'Create Property'}
+                    </>
                   )}
                 </button>
               </div>
@@ -495,13 +704,6 @@ const PropertiesManagement = () => {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        .bg-blue-600 { background-color: #2563eb; }
-        .bg-blue-700 { background-color: #1d4ed8; }
-        .text-blue-600 { color: #2563eb; }
-        .focus\\:ring-blue-600:focus { --tw-ring-color: #2563eb; }
-      `}</style>
     </div>
   );
 };

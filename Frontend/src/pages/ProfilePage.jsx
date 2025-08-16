@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useContext } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
@@ -12,6 +13,7 @@ import {
   Loader2,
   Frown,
   CheckCircle,
+  DollarSign,
   Camera,
   Edit3,
   Save,
@@ -26,7 +28,6 @@ const ProfilePage = () => {
   const { trackInteraction, isAuthenticated } = useContext(AppContext);
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState({});
   const [success, setSuccess] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -38,7 +39,7 @@ const ProfilePage = () => {
   const [expandedSections, setExpandedSections] = useState({
     personal: true,
     roleSpecific: true,
-    roomRequest: false,
+    roomRequest: false, // New state for room request section
   });
   const [roomRequestForm, setRoomRequestForm] = useState({
     budget: "",
@@ -110,28 +111,41 @@ const ProfilePage = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith("image/")) {
         setError("Please select a valid image file");
         return;
       }
-
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        setError("Image size should be less than 10MB");
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Image size should be less than 5MB");
         return;
       }
-
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
       setError("");
+      trackInteraction("file_select", "profile_photo_edit");
     }
   };
 
-  // Handle form input changes with validation
+  // Handle form input changes
   const handleInputChange = (field, value) => {
     setEditForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // Handle nested field changes
+  const handleNestedInputChange = (parentField, field, value) => {
+    setEditForm((prev) => ({
+      ...prev,
+      [parentField]: { ...prev[parentField], [field]: value },
+    }));
+  };
+
+  // Handle room request form changes
+  const handleRoomRequestChange = (field, value) => {
+    setRoomRequestForm((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -145,37 +159,30 @@ const ProfilePage = () => {
     }));
   };
 
+  // Save profile changes
   const handleSave = async () => {
     setSaveLoading(true);
     setError("");
     setSuccess("");
-
     try {
       const token = localStorage.getItem("token");
-      if (!token && !id) {
+      if (!token) {
         throw new Error("No authentication token found");
       }
 
-      // Create FormData for file upload
       const formData = new FormData();
-
-      // Append all form fields
       Object.keys(editForm).forEach((key) => {
         if (editForm[key] !== null && editForm[key] !== undefined) {
-          // Skip arrays and objects that shouldn't be updated via this endpoint
-          if (
-            !["endorsements", "weddings", "_id", "__v", "createdAt"].includes(
-              key
-            )
-          ) {
+          if (key === "brokerInfo" || key === "preferences") {
+            formData.append(key, JSON.stringify(editForm[key]));
+          } else if (key !== "photo") {
             formData.append(key, editForm[key]);
           }
         }
       });
-
-      // Append photo if selected
       if (selectedFile) {
         formData.append("photo", selectedFile);
+("/")
       }
 
       const response = await axios.put(
@@ -184,33 +191,35 @@ const ProfilePage = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "multipart/form-formdata",
           },
         }
       );
 
-      // Update user state with response data
-      setUser(response.data);
-      setEditForm(response.data);
+      setUser(response.data.user);
+      setEditForm(response.data.user);
       setIsEditing(false);
       setSuccess("Profile updated successfully!");
-
-      // Clean up file preview
+      trackInteraction("profile_management", "profile_update_success");
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
       }
-      setPreviewUrl("");
+      setPreviewUrl(
+        response.data.user.photo
+          ? `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
+          : ""
+      );
       setSelectedFile(null);
     } catch (err) {
-      console.error("Profile update error:", err); // Log the full error object
-      console.error("Error response:", err.response); // Log the response details
+      console.error("Profile update error:", err);
       const errorMessage =
         err.response?.data?.message ||
         err.message ||
         "Failed to update profile";
       setError(errorMessage);
-
-      // Redirect to login if token is invalid
+      trackInteraction("profile_management", "profile_update_failure", {
+        error: errorMessage,
+      });
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
         navigate("/login");
@@ -219,21 +228,71 @@ const ProfilePage = () => {
       setSaveLoading(false);
     }
   };
+
+  // Handle room request submission
+  const handleRoomRequestSubmit = async () => {
+    setRequestLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const { budget, location } = roomRequestForm;
+      if (!budget || !location) {
+        throw new Error("Budget and location are required");
+      }
+
+      const response = await axios.post(
+        `https://nestifyy-my3u.onrender.com/api/room-request`,
+        {
+          budget,
+          location,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      setSuccess("Room request submitted successfully!");
+      setRoomRequestForm({ budget: "", location: "" });
+      toggleSection("roomRequest");
+      trackInteraction("room_request", "submit_success");
+    } catch (err) {
+      console.error("Room request error:", err);
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to submit room request";
+      setError(errorMessage);
+      trackInteraction("room_request", "submit_failure", {
+        error: errorMessage,
+      });
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        navigate("/login");
+      }
+    } finally {
+      setRequestLoading(false);
+    }
+  };
+
+  // Cancel editing
   const handleCancel = () => {
     setIsEditing(false);
     setEditForm(user);
     setError("");
-    setFieldErrors({});
     setSuccess("");
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
     setPreviewUrl(
-      user?.photo
-        ? user.photo.startsWith("http")
-          ? user.photo
-          : `https://nestifyy-my3u.onrender.com/${user.photo}`
-        : ""
+      user?.photo ? `https://nestifyy-my3u.onrender.com/${user.photo}` : ""
     );
     setSelectedFile(null);
     trackInteraction("click", "profile_cancel_edit");
@@ -328,13 +387,10 @@ const ProfilePage = () => {
                 <img
                   src={
                     previewUrl ||
-                    (user.photo
-                      ? user.photo.startsWith("http")
-                        ? user.photo
-                        : `https://nestifyy-my3u.onrender.com/${user.photo}`
-                      : `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                          user.name
-                        )}&size=96&background=004dc3&color=FFFFFF`)
+                    (user.photo && user.photo.startsWith('http')
+                      ? user.photo
+                      : `https://nestifyy-my3u.onrender.com/${user.photo}`) ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&size=96&background=004dc3&color=FFFFFF`
                   }
                   alt="Profile"
                   className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white object-cover"
@@ -351,40 +407,43 @@ const ProfilePage = () => {
                   </label>
                 )}
               </div>
-              {fieldErrors.photo && isEditing && (
-                <p className="text-red-500 text-xs mt-2 max-w-[120px] sm:max-w-[160px]">
-                  {fieldErrors.photo}
-                </p>
-              )}
             </div>
           </div>
           <div className="pt-16 sm:pt-20 pb-6 px-4 sm:px-6">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
               <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl font-bold text-black truncate">
-                  {user.name}
-                </h1>
+                <div className="flex items-center gap-2">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editForm.name || ""}
+                      onChange={(e) =>
+                        handleInputChange("name", e.target.value)
+                      }
+                      className="text-2xl sm:text-3xl font-bold text-black bg-transparent border-b-2 border-maroon/20 focus:border-maroon outline-none w-full"
+                      placeholder="Enter your name"
+                    />
+                  ) : (
+                    <h1 className="text-2xl sm:text-3xl font-bold text-black truncate">
+                      {user.name}
+                    </h1>
+                  )}
+                </div>
                 <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 mt-2 text-sm sm:text-base">
                   <div className="flex items-center text-black">
                     <Mail className="w-4 h-4 mr-2 text-maroon flex-shrink-0" />
-                    <span className="truncate max-w-[200px] sm:max-w-[300px]">
-                      {user.email}
-                    </span>
+                    <span className="truncate max-w-[200px] sm:max-w-[300px]">{user.email}</span>
                   </div>
                   {user.phone && (
                     <div className="flex items-center text-black">
                       <Phone className="w-4 h-4 mr-2 text-maroon flex-shrink-0" />
-                      <span className="truncate max-w-[200px] sm:max-w-[300px]">
-                        {user.phone}
-                      </span>
+                      <span className="truncate max-w-[200px] sm:max-w-[300px]">{user.phone}</span>
                     </div>
                   )}
                   {user.location && (
                     <div className="flex items-center text-black">
                       <MapPin className="w-4 h-4 mr-2 text-maroon flex-shrink-0" />
-                      <span className="truncate max-w-[200px] sm:max-w-[300px]">
-                        {user.location}
-                      </span>
+                      <span className="truncate max-w-[200px] sm:max-w-[300px]">{user.location}</span>
                     </div>
                   )}
                 </div>
@@ -457,7 +516,7 @@ const ProfilePage = () => {
               className="bg-gradient-to-r from-maroon to-light-maroon px-4 py-3 flex items-center justify-between cursor-pointer"
               onClick={() => toggleSection("personal")}
             >
-              <h2 className="text-lg sm:text-xl font-bold text-black flex items-center">
+              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center">
                 <User className="w-5 h-5 mr-2" />
                 Personal Information
               </h2>
@@ -480,23 +539,27 @@ const ProfilePage = () => {
                         <div className="flex items-center mb-2 sm:mb-0">
                           <User className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
                           <span className="text-black font-medium w-24">
-                            Name:
-                          </span>
-                        </div>
-                        <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                          {user.name || "Not specified"}
-                        </span>
-                      </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
-                        <div className="flex items-center mb-2 sm:mb-0">
-                          <User className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
-                          <span className="text-black font-medium w-24">
                             Gender:
                           </span>
                         </div>
-                        <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                          {user.gender || "Not specified"}
-                        </span>
+                        {isEditing ? (
+                          <select
+                            value={editForm.gender || ""}
+                            onChange={(e) =>
+                              handleInputChange("gender", e.target.value)
+                            }
+                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                          >
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        ) : (
+                          <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                            {user.gender || "Not specified"}
+                          </span>
+                        )}
                       </div>
                       <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
@@ -505,11 +568,25 @@ const ProfilePage = () => {
                             Age:
                           </span>
                         </div>
-                        <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                          {user.age || "Not specified"}
-                        </span>
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            value={editForm.age || ""}
+                            onChange={(e) =>
+                              handleInputChange("age", e.target.value)
+                            }
+                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                            placeholder="Enter age"
+                            min="1"
+                            max="120"
+                          />
+                        ) : (
+                          <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                            {user.age || "Not specified"}
+                          </span>
+                        )}
                       </div>
-                      {/* <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
                         <div className="flex items-center mb-2 sm:mb-0">
                           <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
                           <span className="text-black font-medium w-24">
@@ -517,28 +594,21 @@ const ProfilePage = () => {
                           </span>
                         </div>
                         {isEditing ? (
-                          <div className="flex-1 relative">
-                            <input
-                              type="text"
-                              value={editForm.profession || ""}
-                              onChange={(e) =>
-                                handleInputChange("profession", e.target.value)
-                              }
-                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                              placeholder="Enter profession"
-                            />
-                            {fieldErrors.profession && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {fieldErrors.profession}
-                              </p>
-                            )}
-                          </div>
+                          <input
+                            type="text"
+                            value={editForm.profession || ""}
+                            onChange={(e) =>
+                              handleInputChange("profession", e.target.value)
+                            }
+                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                            placeholder="Enter profession"
+                          />
                         ) : (
                           <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
                             {user.profession || "Not specified"}
                           </span>
                         )}
-                      </div> */}
+                      </div>
                     </div>
                   </div>
                   <div className="bg-cream rounded-xl p-4 border border-warm-gray">
@@ -555,22 +625,15 @@ const ProfilePage = () => {
                           </span>
                         </div>
                         {isEditing ? (
-                          <div className="flex-1 relative">
-                            <input
-                              type="email"
-                              value={editForm.email || ""}
-                              onChange={(e) =>
-                                handleInputChange("email", e.target.value)
-                              }
-                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                              placeholder="Enter email"
-                            />
-                            {fieldErrors.email && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {fieldErrors.email}
-                              </p>
-                            )}
-                          </div>
+                          <input
+                            type="email"
+                            value={editForm.email || ""}
+                            onChange={(e) =>
+                              handleInputChange("email", e.target.value)
+                            }
+                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                            placeholder="Enter email"
+                          />
                         ) : (
                           <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
                             {user.email}
@@ -585,22 +648,15 @@ const ProfilePage = () => {
                           </span>
                         </div>
                         {isEditing ? (
-                          <div className="flex-1 relative">
-                            <input
-                              type="tel"
-                              value={editForm.phone || ""}
-                              onChange={(e) =>
-                                handleInputChange("phone", e.target.value)
-                              }
-                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                              placeholder="Enter phone number (e.g., +1234567890)"
-                            />
-                            {fieldErrors.phone && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {fieldErrors.phone}
-                              </p>
-                            )}
-                          </div>
+                          <input
+                            type="tel"
+                            value={editForm.phone || ""}
+                            onChange={(e) =>
+                              handleInputChange("phone", e.target.value)
+                            }
+                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                            placeholder="Enter phone number"
+                          />
                         ) : (
                           <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
                             {user.phone || "Not specified"}
@@ -615,22 +671,15 @@ const ProfilePage = () => {
                           </span>
                         </div>
                         {isEditing ? (
-                          <div className="flex-1 relative">
-                            <input
-                              type="text"
-                              value={editForm.location || ""}
-                              onChange={(e) =>
-                                handleInputChange("location", e.target.value)
-                              }
-                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                              placeholder="Enter location"
-                            />
-                            {fieldErrors.location && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {fieldErrors.location}
-                              </p>
-                            )}
-                          </div>
+                          <input
+                            type="text"
+                            value={editForm.location || ""}
+                            onChange={(e) =>
+                              handleInputChange("location", e.target.value)
+                            }
+                            className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                            placeholder="Enter location"
+                          />
                         ) : (
                           <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
                             {user.location || "Not specified"}
@@ -640,6 +689,325 @@ const ProfilePage = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Room Request Section */}
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-warm-gray">
+            <div
+              className="bg-gradient-to-r from-maroon to-light-maroon px-4 py-3 flex items-center justify-between cursor-pointer"
+              onClick={() => toggleSection("roomRequest")}
+            >
+              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center">
+                <User className="w-5 h-5 mr-2" />
+                Request a Room
+              </h2>
+              {expandedSections.roomRequest ? (
+                <ChevronUp className="w-5 h-5 text-white" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-white" />
+              )}
+            </div>
+            {expandedSections.roomRequest && (
+              <div className="p-4 sm:p-6">
+                <div className="space-y-4">
+                  <div className="bg-cream rounded-xl p-4 border border-warm-gray">
+                    <h3 className="font-semibold text-maroon mb-3 flex items-center text-sm sm:text-base">
+                      <MapPin className="w-4 h-4 mr-2" />
+                      Room Request Details
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                        <div className="flex items-center mb-2 sm:mb-0">
+                          <DollarSign className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
+                          <span className="text-black font-medium w-24">
+                            Budget:
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          value={roomRequestForm.budget}
+                          onChange={(e) =>
+                            handleRoomRequestChange("budget", e.target.value)
+                          }
+                          className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                          placeholder="Enter your budget (e.g., ₹10,000)"
+                        />
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                        <div className="flex items-center mb-2 sm:mb-0">
+                          <MapPin className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
+                          <span className="text-black font-medium w-24">
+                            Location:
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          value={roomRequestForm.location}
+                          onChange={(e) =>
+                            handleRoomRequestChange("location", e.target.value)
+                          }
+                          className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                          placeholder="Enter preferred location"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setRoomRequestForm({ budget: "", location: "" });
+                            toggleSection("roomRequest");
+                            trackInteraction("click", "room_request_cancel");
+                          }}
+                          className="flex items-center justify-center gap-2 bg-warm-gray text-black px-3 py-2 rounded-lg hover:bg-gray-400 transition-colors font-medium shadow-sm text-sm sm:text-base"
+                        >
+                          <X className="w-4 h-4" />
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleRoomRequestSubmit}
+                          disabled={requestLoading}
+                          className="flex items-center justify-center gap-2 bg-maroon text-white px-3 py-2 rounded-lg hover:bg-deep-maroon transition-colors disabled:opacity-50 font-medium text-sm sm:text-base"
+                        >
+                          {requestLoading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Submitting...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="w-4 h-4" />
+                              Submit Request
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Role-Specific Information */}
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-warm-gray">
+            <div
+              className="bg-gradient-to-r from-maroon to-light-maroon px-4 py-3 flex items-center justify-between cursor-pointer"
+              onClick={() => toggleSection("roleSpecific")}
+            >
+              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center">
+                {user.role === "broker" ? (
+                  <Briefcase className="w-5 h-5 mr-2" />
+                ) : (
+                  <User className="w-5 h-5 mr-2" />
+                )}
+                {user.role === "broker"
+                  ? "Broker Information"
+                  : "User Preferences"}
+              </h2>
+              {expandedSections.roleSpecific ? (
+                <ChevronUp className="w-5 h-5 text-white" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-white" />
+              )}
+            </div>
+            {expandedSections.roleSpecific && (
+              <div className="p-4 sm:p-6">
+                {user.role === "broker" && user.brokerInfo ? (
+                  <div className="space-y-4">
+                    <div className="bg-cream rounded-xl p-4 border border-warm-gray">
+                      <h3 className="font-semibold text-maroon mb-3 flex items-center text-sm sm:text-base">
+                        <Briefcase className="w-4 h-4 mr-2" />
+                        Broker Details
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                          <div className="flex items-center mb-2 sm:mb-0">
+                            <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
+                            <span className="text-black font-medium w-28">
+                              Clients Handled:
+                            </span>
+                          </div>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={editForm.brokerInfo?.clientsHandled || ""}
+                              onChange={(e) =>
+                                handleNestedInputChange(
+                                  "brokerInfo",
+                                  "clientsHandled",
+                                  e.target.value
+                                )
+                              }
+                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                              placeholder="Enter clients handled"
+                            />
+                          ) : (
+                            <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                              {user.brokerInfo.clientsHandled || "Not specified"}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                          <div className="flex items-center mb-2 sm:mb-0">
+                            <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
+                            <span className="text-black font-medium w-28">
+                              Properties Sold:
+                            </span>
+                          </div>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={editForm.brokerInfo?.propertiesSold || ""}
+                              onChange={(e) =>
+                                handleNestedInputChange(
+                                  "brokerInfo",
+                                  "propertiesSold",
+                                  e.target.value
+                                )
+                              }
+                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                              placeholder="Enter properties sold"
+                            />
+                          ) : (
+                            <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                              {user.brokerInfo.propertiesSold || "Not specified"}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                          <div className="flex items-center mb-2 sm:mb-0">
+                            <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
+                            <span className="text-black font-medium w-28">
+                              Experience:
+                            </span>
+                          </div>
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={editForm.brokerInfo?.experience || ""}
+                              onChange={(e) =>
+                                handleNestedInputChange(
+                                  "brokerInfo",
+                                  "experience",
+                                  e.target.value
+                                )
+                              }
+                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                              placeholder="Enter years of experience"
+                            />
+                          ) : (
+                            <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                              {user.brokerInfo.experience || "Not specified"} years
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : user.role === "user" && user.preferences ? (
+                  <div className="space-y-4">
+                    <div className="bg-cream rounded-xl p-4 border border-warm-gray">
+                      <h3 className="font-semibold text-maroon mb-3 flex items-center text-sm sm:text-base">
+                        <GraduationCap className="w-4 h-4 mr-2" />
+                        User Preferences
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                          <div className="flex items-center mb-2 sm:mb-0">
+                            <MapPin className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
+                            <span className="text-black font-medium w-28">
+                              Property Type:
+                            </span>
+                          </div>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editForm.preferences?.propertyType || ""}
+                              onChange={(e) =>
+                                handleNestedInputChange(
+                                  "preferences",
+                                  "propertyType",
+                                  e.target.value
+                                )
+                              }
+                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                              placeholder="Enter preferred property type"
+                            />
+                          ) : (
+                            <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                              {user.preferences.propertyType || "Not specified"}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                          <div className="flex items-center mb-2 sm:mb-0">
+                            <MapPin className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
+                            <span className="text-black font-medium w-28">
+                              Location:
+                            </span>
+                          </div>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editForm.preferences?.location || ""}
+                              onChange={(e) =>
+                                handleNestedInputChange(
+                                  "preferences",
+                                  "location",
+                                  e.target.value
+                                )
+                              }
+                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                              placeholder="Enter preferred location"
+                            />
+                          ) : (
+                            <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                              {user.preferences.location || "Not specified"}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
+                          <div className="flex items-center mb-2 sm:mb-0">
+                            <MapPin className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
+                            <span className="text-black font-medium w-28">
+                              Budget:
+                            </span>
+                          </div>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editForm.preferences?.budget || ""}
+                              onChange={(e) =>
+                                handleNestedInputChange(
+                                  "preferences",
+                                  "budget",
+                                  e.target.value
+                                )
+                              }
+                              className="flex-1 px-3 py-2 border borderjonerow border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
+                              placeholder="Enter budget"
+                            />
+                          ) : (
+                            <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
+                              {user.preferences.budget || "Not specified"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="bg-cream w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Frown className="w-8 h-8 text-maroon" />
+                    </div>
+                    <p className="text-black font-medium text-sm sm:text-base">
+                      No {user.role === "broker" ? "broker" : "user"} information
+                      available.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -661,9 +1029,9 @@ const ProfilePage = () => {
               Email
             </a>
           )}
-          {user.phone && (
+          {user.number && (
             <a
-              href={`tel:${user.phone}`}
+              href={`tel:${user.number}`}
               className="flex-1 sm:flex-none bg-cream text-maroon border border-blue py-2 px-4 rounded-lg hover:bg-maroon hover:text-white transition-colors font-medium flex items-center justify-center gap-2 text-sm sm:text-base"
               onClick={() =>
                 trackInteraction("click", "contact_user_phone", {
@@ -674,6 +1042,18 @@ const ProfilePage = () => {
               <Phone className="w-4 h-4" />
               Call
             </a>
+          )}
+          {!id && (
+            <button
+              onClick={() => {
+                toggleSection("roomRequest");
+                trackInteraction("click", "view_room_request_form");
+              }}
+              className="flex-1 sm:flex-none bg-maroon text-white py-2 px-4 rounded-lg hover:bg-deep-maroon transition-colors font-medium flex items-center justify-center gap-2 text-sm sm:text-base"
+            >
+              <User className="w-4 h-4" />
+              Request for Room
+            </button>
           )}
         </div>
 
@@ -716,8 +1096,6 @@ const ProfilePage = () => {
             .w-24 { width: 5rem; }
             .max-w-[200px] { max-width: 70%; }
             .max-w-[300px] { max-width: 80%; }
-            .max-w-[120px] { max-width: 60%; }
-            .max-w-[160px] { max-width: 70%; }
           }
         `}</style>
       </div>
