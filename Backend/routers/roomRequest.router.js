@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createRoomRequest, getAllRoomRequests, searchRoomRequests, getUserRoomRequests, deleteRoomRequest } from "../controller.js/roomRequest.controller.js";
+import { createRoomRequest, getAllRoomRequests, searchRoomRequests, getUserRoomRequests, deleteRoomRequest, updateRoomRequest } from "../controller.js/roomRequest.controller.js";
 import authMiddleware from "../middlewares/auth.js";
 
 const router = Router();
@@ -9,5 +9,6 @@ router.get("/all", getAllRoomRequests);
 router.get("/search", authMiddleware, searchRoomRequests);
 router.get("/user", authMiddleware, getUserRoomRequests);
 router.delete("/:id", authMiddleware, deleteRoomRequest);
+router.put("/:id", authMiddleware, updateRoomRequest);
 
 export default router;

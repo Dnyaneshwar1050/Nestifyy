@@ -211,4 +211,44 @@ const deleteRoomRequest = async (req, res) => {
   }
 };
 
-export { createRoomRequest, getAllRoomRequests, searchRoomRequests, getUserRoomRequests, deleteRoomRequest };
+const updateRoomRequest = async (req, res) => {
+  try {
+    const { budget, location } = req.body;
+    const requestId = req.params.id;
+    const userId = req.user?._id || req.user?.id;
+
+    if (!budget && !location) {
+      return res.status(400).json({ message: "At least one field is required to update" });
+    }
+
+    const roomRequest = await RoomRequest.findById(requestId);
+    if (!roomRequest) {
+      return res.status(404).json({ message: "Room request not found" });
+    }
+
+    if (roomRequest.user.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Unauthorized to update this room request" });
+    }
+
+    if (budget) roomRequest.budget = budget;
+    if (location) roomRequest.location = location;
+
+    await roomRequest.save();
+
+    res.status(200).json({ message: "Room request updated successfully", roomRequest });
+  } catch (error) {
+    console.error("updateRoomRequest: Error:", {
+      message: error.message,
+      stack: error.stack,
+      requestId: req.params.id,
+      userId: req.user?._id || req.user?.id || "unknown",
+      timestamp: new Date().toISOString(),
+    });
+    res.status(500).json({
+      message: "Failed to update room request",
+      error: error.message,
+    });
+  }
+};
+
+export { createRoomRequest, getAllRoomRequests, searchRoomRequests, getUserRoomRequests, deleteRoomRequest, updateRoomRequest };

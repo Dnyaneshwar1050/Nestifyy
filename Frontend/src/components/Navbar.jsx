@@ -181,8 +181,11 @@ const Navbar = () => {
             Broker Zone
           </NavLink>
         )}
-        {isAuthenticated && (
-          <NavLink
+
+        {isAuthenticated ? (
+          <>
+            <div className="w-px h-6 bg-gray-200 mx-2"></div>
+            <NavLink
             to="/profile"
             className={({ isActive }) =>
               `font-medium text-base py-2 px-3 rounded-lg transition-colors duration-200 ${
@@ -195,26 +198,6 @@ const Navbar = () => {
           >
             Profile
           </NavLink>
-        )}
-        {isAuthenticated ? (
-          <>
-            <div className="w-px h-6 bg-gray-200 mx-2"></div>
-            {userRole === "user" && (
-              <NavLink
-                to="/dashboard"
-                className={({ isActive }) =>
-                  `flex items-center gap-1 px-4 py-2 rounded-full transition-all duration-300 text-sm font-medium ${
-                    isActive
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
-                  }`
-                }
-                onClick={() => trackInteraction("click", "nav_dashboard")}
-              >
-                <User className="w-4 h-4" />
-                <span>Dashboard</span>
-              </NavLink>
-            )}
             {isAdmin && (
               <NavLink
                 to="/admin-panel"

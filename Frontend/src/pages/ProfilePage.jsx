@@ -693,7 +693,7 @@ const ProfilePage = () => {
             )}
           </div>
 
-          {/* Room Request Section */}
+          {/* Room Request Section
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-warm-gray">
             <div
               className="bg-gradient-to-r from-maroon to-light-maroon px-4 py-3 flex items-center justify-between cursor-pointer"
@@ -787,230 +787,9 @@ const ProfilePage = () => {
                 </div>
               </div>
             )}
-          </div>
+          </div> */}
 
-          {/* Role-Specific Information */}
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-warm-gray">
-            <div
-              className="bg-gradient-to-r from-maroon to-light-maroon px-4 py-3 flex items-center justify-between cursor-pointer"
-              onClick={() => toggleSection("roleSpecific")}
-            >
-              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center">
-                {user.role === "broker" ? (
-                  <Briefcase className="w-5 h-5 mr-2" />
-                ) : (
-                  <User className="w-5 h-5 mr-2" />
-                )}
-                {user.role === "broker"
-                  ? "Broker Information"
-                  : "User Preferences"}
-              </h2>
-              {expandedSections.roleSpecific ? (
-                <ChevronUp className="w-5 h-5 text-white" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-white" />
-              )}
-            </div>
-            {expandedSections.roleSpecific && (
-              <div className="p-4 sm:p-6">
-                {user.role === "broker" && user.brokerInfo ? (
-                  <div className="space-y-4">
-                    <div className="bg-cream rounded-xl p-4 border border-warm-gray">
-                      <h3 className="font-semibold text-maroon mb-3 flex items-center text-sm sm:text-base">
-                        <Briefcase className="w-4 h-4 mr-2" />
-                        Broker Details
-                      </h3>
-                      <div className="space-y-3">
-                        <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
-                          <div className="flex items-center mb-2 sm:mb-0">
-                            <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
-                            <span className="text-black font-medium w-28">
-                              Clients Handled:
-                            </span>
-                          </div>
-                          {isEditing ? (
-                            <input
-                              type="number"
-                              value={editForm.brokerInfo?.clientsHandled || ""}
-                              onChange={(e) =>
-                                handleNestedInputChange(
-                                  "brokerInfo",
-                                  "clientsHandled",
-                                  e.target.value
-                                )
-                              }
-                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                              placeholder="Enter clients handled"
-                            />
-                          ) : (
-                            <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                              {user.brokerInfo.clientsHandled || "Not specified"}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
-                          <div className="flex items-center mb-2 sm:mb-0">
-                            <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
-                            <span className="text-black font-medium w-28">
-                              Properties Sold:
-                            </span>
-                          </div>
-                          {isEditing ? (
-                            <input
-                              type="number"
-                              value={editForm.brokerInfo?.propertiesSold || ""}
-                              onChange={(e) =>
-                                handleNestedInputChange(
-                                  "brokerInfo",
-                                  "propertiesSold",
-                                  e.target.value
-                                )
-                              }
-                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                              placeholder="Enter properties sold"
-                            />
-                          ) : (
-                            <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                              {user.brokerInfo.propertiesSold || "Not specified"}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
-                          <div className="flex items-center mb-2 sm:mb-0">
-                            <Briefcase className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
-                            <span className="text-black font-medium w-28">
-                              Experience:
-                            </span>
-                          </div>
-                          {isEditing ? (
-                            <input
-                              type="number"
-                              value={editForm.brokerInfo?.experience || ""}
-                              onChange={(e) =>
-                                handleNestedInputChange(
-                                  "brokerInfo",
-                                  "experience",
-                                  e.target.value
-                                )
-                              }
-                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                              placeholder="Enter years of experience"
-                            />
-                          ) : (
-                            <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                              {user.brokerInfo.experience || "Not specified"} years
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : user.role === "user" && user.preferences ? (
-                  <div className="space-y-4">
-                    <div className="bg-cream rounded-xl p-4 border border-warm-gray">
-                      <h3 className="font-semibold text-maroon mb-3 flex items-center text-sm sm:text-base">
-                        <GraduationCap className="w-4 h-4 mr-2" />
-                        User Preferences
-                      </h3>
-                      <div className="space-y-3">
-                        <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
-                          <div className="flex items-center mb-2 sm:mb-0">
-                            <MapPin className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
-                            <span className="text-black font-medium w-28">
-                              Property Type:
-                            </span>
-                          </div>
-                          {isEditing ? (
-                            <input
-                              type="text"
-                              value={editForm.preferences?.propertyType || ""}
-                              onChange={(e) =>
-                                handleNestedInputChange(
-                                  "preferences",
-                                  "propertyType",
-                                  e.target.value
-                                )
-                              }
-                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                              placeholder="Enter preferred property type"
-                            />
-                          ) : (
-                            <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                              {user.preferences.propertyType || "Not specified"}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
-                          <div className="flex items-center mb-2 sm:mb-0">
-                            <MapPin className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
-                            <span className="text-black font-medium w-28">
-                              Location:
-                            </span>
-                          </div>
-                          {isEditing ? (
-                            <input
-                              type="text"
-                              value={editForm.preferences?.location || ""}
-                              onChange={(e) =>
-                                handleNestedInputChange(
-                                  "preferences",
-                                  "location",
-                                  e.target.value
-                                )
-                              }
-                              className="flex-1 px-3 py-2 border border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                              placeholder="Enter preferred location"
-                            />
-                          ) : (
-                            <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                              {user.preferences.location || "Not specified"}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center p-2 hover:bg-white rounded-lg transition-colors">
-                          <div className="flex items-center mb-2 sm:mb-0">
-                            <MapPin className="w-5 h-5 mr-2 text-maroon flex-shrink-0" />
-                            <span className="text-black font-medium w-28">
-                              Budget:
-                            </span>
-                          </div>
-                          {isEditing ? (
-                            <input
-                              type="text"
-                              value={editForm.preferences?.budget || ""}
-                              onChange={(e) =>
-                                handleNestedInputChange(
-                                  "preferences",
-                                  "budget",
-                                  e.target.value
-                                )
-                              }
-                              className="flex-1 px-3 py-2 border borderjonerow border-warm-gray rounded-lg focus:border-maroon focus:ring-2 focus:ring-light-maroon/20 outline-none text-sm sm:text-base"
-                              placeholder="Enter budget"
-                            />
-                          ) : (
-                            <span className="text-black truncate max-w-[200px] sm:max-w-[300px]">
-                              {user.preferences.budget || "Not specified"}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="bg-cream w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Frown className="w-8 h-8 text-maroon" />
-                    </div>
-                    <p className="text-black font-medium text-sm sm:text-base">
-                      No {user.role === "broker" ? "broker" : "user"} information
-                      available.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          
         </div>
 
         {/* Actions Panel */}
@@ -1029,7 +808,7 @@ const ProfilePage = () => {
               Email
             </a>
           )}
-          {user.number && (
+          {/* {user.number && (
             <a
               href={`tel:${user.number}`}
               className="flex-1 sm:flex-none bg-cream text-maroon border border-blue py-2 px-4 rounded-lg hover:bg-maroon hover:text-white transition-colors font-medium flex items-center justify-center gap-2 text-sm sm:text-base"
@@ -1042,17 +821,17 @@ const ProfilePage = () => {
               <Phone className="w-4 h-4" />
               Call
             </a>
-          )}
+          )} */}
           {!id && (
             <button
               onClick={() => {
-                toggleSection("roomRequest");
-                trackInteraction("click", "view_room_request_form");
+                navigate("/dashboard");
+                trackInteraction("click", "view_dashboard");
               }}
               className="flex-1 sm:flex-none bg-maroon text-white py-2 px-4 rounded-lg hover:bg-deep-maroon transition-colors font-medium flex items-center justify-center gap-2 text-sm sm:text-base"
             >
               <User className="w-4 h-4" />
-              Request for Room
+              Dashboard
             </button>
           )}
         </div>

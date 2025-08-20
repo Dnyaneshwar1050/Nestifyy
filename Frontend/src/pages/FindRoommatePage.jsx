@@ -5,280 +5,309 @@ import {
   Users,
   Loader2,
   Frown,
-  MessageSquare,
   AlertCircle,
 } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import RoommateListingCard from "../components/RoommateListingCard";
-import axios from "axios";
 
 const FindRoommatePage = () => {
   const { trackInteraction } = useContext(AppContext);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [roommates, setRoommates] = useState([]);
+  const [displayedRoommates, setDisplayedRoommates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [filters, setFilters] = useState({
-    location: searchParams.get("search") || "",
+    location: "",
     gender: "",
     budget: "",
   });
-  const [sortOrder, setSortOrder] = useState("relevance");
-  const [roommates, setRoommates] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [filtersApplied, setFiltersApplied] = useState(false);
 
-  // Check if no filters are applied
-  const areFiltersEmpty =
-    !filters.location && !filters.gender && !filters.budget;
-
-  // Validate filter inputs
-  const isValidLocation = filters.location.trim().length >= 2; // Minimum 2 chars
-  const isValidGender =
-    !filters.gender || ["Male", "Female", "Other"].includes(filters.gender);
-  const isValidBudget =
-    !filters.budget || filters.budget.match(/^\d+-\d+$|^\d+\+$/);
-  const isValidSearch =
-    areFiltersEmpty || (isValidLocation && isValidGender && isValidBudget);
-
-  // Format applied filters for display
-  const getAppliedFiltersText = () => {
-    const filterParts = [];
-    if (filters.location) filterParts.push(`Location: ${filters.location}`);
-    if (filters.gender) filterParts.push(`Gender: ${filters.gender}`);
-    if (filters.budget) {
-      const budgetDisplay =
-        {
-          "0-5000": "₹0 - ₹5,000",
-          "5001-10000": "₹5,001 - ₹10,000",
-          "10001-15000": "₹10,001 - ₹15,000",
-          "15001+": "₹15,001+",
-        }[filters.budget] || filters.budget;
-      filterParts.push(`Budget: ${budgetDisplay}`);
-    }
-    return filterParts.length > 0
-      ? `Applied Filters: ${filterParts.join(", ")}`
-      : "";
-  };
-
-  // Initialize filters from URL search params on page load
   useEffect(() => {
     trackInteraction("page_view", "find_roommate_page");
-    setFilters({
-      location: searchParams.get("search") || "",
-      gender: searchParams.get("gender") || "",
-      budget: searchParams.get("budget") || "",
-    });
-    fetchRoommates(); // Fetch roommates on initial load
-  }, [trackInteraction, searchParams]);
+    fetchRoommates();
+  }, [trackInteraction]);
 
-  const fetchRoommates = async (
-    currentFilters = filters,
-    currentSortOrder = sortOrder
-  ) => {
+  const fetchRoommates = async () => {
     setLoading(true);
     setError("");
-    setRoommates([]); // Clear previous results
-    trackInteraction("search", "find_roommate_search_initiated", {
-      filters: currentFilters,
-      sort: currentSortOrder,
-    });
     try {
-      const params = {};
-      if (currentFilters.location)
-        params.search = currentFilters.location.trim();
-      if (currentFilters.gender) params.gender = currentFilters.gender;
-      if (currentFilters.budget) params.budget = currentFilters.budget;
-
-      const response = await axios.get(
-        "https://nestifyy-my3u.onrender.com/api/room-request/search",
-        {
-          params,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-          },
-        }
-      );
-
-      // Validate response data
-      if (!Array.isArray(response.data)) {
-        throw new Error("Invalid response format from server");
+      const apiUrl = import.meta.env.VITE_API_URL || "https://nestifyy-my3u.onrender.com";
+      const response = await fetch(`${apiUrl}/api/room-request/all`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-
-      const formattedRoommates = response.data.map((request) => ({
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error("No roommates data in response");
+      }
+      const fetchedRoommates = data.map((request) => ({
         id: request._id,
         name: request.user?.name || "Unknown",
         location: request.location,
-        lookingFor: request.location,
-        budget: request.budget,
+        budget: `₹ ${parseInt(request.budget).toLocaleString()}/month`,
+        gender: request.user?.gender || "Not specified",
         imageUrl:
           request.user?.photo ||
           `https://ui-avatars.com/api/?name=${encodeURIComponent(
             request.user?.name || "Unknown"
           )}&size=400&background=F0F9FF&color=0284C7`,
-        gender: request.user?.gender || "Not specified",
         interests: "Not specified",
       }));
-
-      setRoommates(formattedRoommates);
-      trackInteraction("search", "find_roommate_search_success", {
-        resultsCount: formattedRoommates.length,
-        currentPath: "/find-roommate",
+      setRoommates(fetchedRoommates);
+      setDisplayedRoommates(fetchedRoommates.slice(0, 6));
+      trackInteraction("data_fetch", "roommates_fetch_success", {
+        count: fetchedRoommates.length,
       });
     } catch (err) {
-      // ... error handling
+      console.error("Fetch roommates error:", err);
+      setError(`Failed to load roommates: ${err.message}. Please try again.`);
+      trackInteraction("data_fetch", "roommates_fetch_failure", {
+        error: err.message,
+      });
     } finally {
       setLoading(false);
     }
   };
+
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
-    setError(""); // Clear error on filter change
     trackInteraction("input", `find_roommate_filter_${name}`, { value });
   };
 
-  const handleSearch = () => {
-    // Update URL with current filters
-    const newParams = {};
-    if (filters.location) newParams.search = filters.location.trim();
-    if (filters.gender) newParams.gender = filters.gender;
-    if (filters.budget) newParams.budget = filters.budget;
-    setSearchParams(newParams);
-    fetchRoommates(filters, sortOrder);
+  const applyFilters = async () => {
+    trackInteraction("click", "apply_filters_button", { filters });
+    setFiltersApplied(true);
+    setLoading(true);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "https://nestifyy-my3u.onrender.com";
+      const response = await fetch(`${apiUrl}/api/room-request/all`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      let filtered = data.map((request) => ({
+        id: request._id,
+        name: request.user?.name || "Unknown",
+        location: request.location,
+        budget: `₹ ${parseInt(request.budget).toLocaleString()}/month`,
+        gender: request.user?.gender || "Not specified",
+        imageUrl:
+          request.user?.photo ||
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+            request.user?.name || "Unknown"
+          )}&size=400&background=F0F9FF&color=0284C7`,
+        interests: "Not specified",
+      }));
+
+      filtered = filtered.filter((roommate) => {
+        const matchesLocation = filters.location
+          ? roommate.location &&
+            roommate.location.toLowerCase().includes(filters.location.toLowerCase())
+          : true;
+        const matchesGender = filters.gender
+          ? roommate.gender === filters.gender
+          : true;
+        const matchesBudget = filters.budget
+          ? parseInt(roommate.budget.replace(/[^0-9]/g, "")) <=
+            parseInt(filters.budget.split("-")[1] || filters.budget.replace("+", ""))
+          : true;
+        return matchesLocation && matchesGender && matchesBudget;
+      });
+
+      setRoommates(filtered);
+      setDisplayedRoommates(filtered.slice(0, 6));
+      setLoading(false);
+      if (filtered.length === 0) {
+        setError("No roommates found matching your criteria.");
+      } else {
+        setError("");
+      }
+    } catch (err) {
+      console.error("Filter roommates error:", err);
+      setError(`Failed to load roommates: ${err.message}. Please try again.`);
+      trackInteraction("data_fetch", "filter_roommates_failure", {
+        error: err.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleShowLess = () => {
+    trackInteraction("click", "show_less_button");
+    setDisplayedRoommates(roommates.slice(0, 6));
+    setFiltersApplied(false);
   };
 
   return (
     <div className="min-h-screen bg-bg-gray-50 p-6 md:p-12 flex flex-col items-center">
-      <h1 className="text-4xl md:text-5xl font-extrabold text-text-gray-800 text-center mb-10 relative">
-        <span className="relative inline-block pb-2">
-          Find Your Perfect Roommate
-          <span className="content-[''] absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-1 bg-primary-green rounded-full"></span>
-        </span>
+      <h1 className="text-4xl md:text-5xl font-extrabold text-text-gray-800 text-center mb-6 relative pb-2 after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-24 after:h-1 after:bg-primary-green after:rounded-full">
+        Find Your Perfect Roommate
       </h1>
+      <p className="text-center text-text-gray-600 text-lg mb-10 max-w-3xl leading-relaxed">
+        Browse through verified roommate listings to find your ideal match.
+      </p>
 
-      <div className="bg-card-bg rounded-2xl shadow-card-shadow-xl p-6 md:p-8 w-full max-w-4xl mb-10 border border-border-gray-200 animate-fade-in-up">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="relative">
-            <MapPin
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400"
-              size={20}
-            />
-            <input
-              type="text"
-              name="location"
-              placeholder="Preferred City/Locality"
-              className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-green focus:ring-2 focus:ring-green-500/50"
-              value={filters.location}
-              onChange={handleFilterChange}
-              onFocus={() =>
-                trackInteraction("focus", "find_roommate_location_input")
-              }
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSearch();
+      <section className="bg-card-bg rounded-2xl shadow-card-shadow p-6 md:p-8 w-full max-w-4xl mb-10 border border-border-gray-300 animate-fade-in-up delay-100">
+        <h2 className="text-2xl font-bold text-text-gray-800 mb-6 flex items-center gap-3">
+          <Search size={28} className="text-primary-green" /> Refine Your Search
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="filter-group">
+            <label
+              htmlFor="location"
+              className="block text-sm font-semibold text-text-gray-700 mb-2"
+            >
+              Location
+            </label>
+            <div className="relative">
+              <MapPin
+                size={20}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-gray-400"
+              />
+              <input
+                type="text"
+                id="location"
+                name="location"
+                value={filters.location}
+                onChange={handleFilterChange}
+                placeholder="e.g., Koregaon Park"
+                className="w-full px-4 py-3 pl-10 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 text-base text-text-gray-800 bg-card-bg shadow-sm focus:border-primary-green focus:ring-2 focus:ring-green-300"
+                onFocus={() =>
+                  trackInteraction("focus", "find_roommate_location_input")
                 }
-              }}
-            />
+              />
+            </div>
           </div>
-          <div className="relative">
-            <Users
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400"
-              size={20}
-            />
-            <select
-              name="gender"
-              className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 20 20%27 fill=%27currentColor%27%3E%3Cpath fill-rule=%27evenodd%27 d=%27M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%27 clip-rule=%27evenodd%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em] focus:border-primary-green focus:ring-2 focus:ring-green-500/50"
-              value={filters.gender}
-              onChange={handleFilterChange}
-              onFocus={() =>
-                trackInteraction("focus", "find_roommate_gender_filter")
-              }
+
+          <div className="filter-group">
+            <label
+              htmlFor="gender"
+              className="block text-sm font-semibold text-text-gray-700 mb-2"
             >
-              <option value="">Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
+              Gender
+            </label>
+            <div className="relative">
+              <Users
+                size={20}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-gray-400"
+              />
+              <select
+                id="gender"
+                name="gender"
+                value={filters.gender}
+                onChange={handleFilterChange}
+                className="w-full px-4 py-3 pl-10 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 text-base text-text-gray-800 bg-card-bg shadow-sm appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 20 20%27 fill=%27currentColor%27%3E%3Cpath fill-rule=%27evenodd%27 d=%27M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%27 clip-rule=%27evenodd%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em] focus:border-primary-green focus:ring-2 focus:ring-green-300"
+                onFocus={() =>
+                  trackInteraction("focus", "find_roommate_gender_filter")
+                }
+              >
+                <option value="">Any</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
           </div>
-          <div className="relative">
-            <select
-              name="budget"
-              className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 20 20%27 fill=%27currentColor%27%3E%3Cpath fill-rule=%27evenodd%27 d=%27M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%27 clip-rule=%27evenodd%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em] focus:border-primary-green focus:ring-2 focus:ring-green-500/50"
-              value={filters.budget}
-              onChange={handleFilterChange}
-              onFocus={() =>
-                trackInteraction("focus", "find_roommate_budget_filter")
-              }
+
+          <div className="filter-group">
+            <label
+              htmlFor="budget"
+              className="block text-sm font-semibold text-text-gray-700 mb-2"
             >
-              <option value="">Max Budget</option>
-              <option value="0-5000">₹0 - ₹5,000</option>
-              <option value="5001-10000">₹5,001 - ₹10,000</option>
-              <option value="10001-15000">₹10,001 - ₹15,000</option>
-              <option value="15001+">₹15,001+</option>
-            </select>
+              Max Budget
+            </label>
+            <div className="relative">
+              <select
+                id="budget"
+                name="budget"
+                value={filters.budget}
+                onChange={handleFilterChange}
+                className="w-full px-4 py-3 pl-10 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 text-base text-text-gray-800 bg-card-bg shadow-sm appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 20 20%27 fill=%27currentColor%27%3E%3Cpath fill-rule=%27evenodd%27 d=%27M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%27 clip-rule=%27evenodd%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em] focus:border-primary-green focus:ring-2 focus:ring-green-300"
+                onFocus={() =>
+                  trackInteraction("focus", "find_roommate_budget_filter")
+                }
+              >
+                <option value="">Any</option>
+                <option value="0-5000">₹0 - ₹5,000</option>
+                <option value="5001-10000">₹5,001 - ₹10,000</option>
+                <option value="10001-15000">₹10,001 - ₹15,000</option>
+                <option value="15001+">₹15,001+</option>
+              </select>
+            </div>
           </div>
         </div>
-        <button
-          onClick={handleSearch}
-          disabled={!isValidSearch}
-          className={`w-full mb-3 py-4 rounded-full bg-gradient-to-r from-green-500 via-green-400 to-green-600 text-white text-2xl font-bold shadow-lg transition-all duration-300 flex items-center justify-center gap-3 transform focus:outline-none focus:ring-4 focus:ring-green-300 ${
-            !isValidSearch
-              ? "opacity-50 cursor-not-allowed"
-              : "hover:from-green-600 hover:to-green-700 hover:scale-105 active:scale-98"
-          }`}
-          style={{ letterSpacing: "0.03em" }}
-        >
-          <Users size={28} className="text-white drop-shadow" />
-          Find Roommate
-        </button>
-        {getAppliedFiltersText() && (
-          <div className="mt-4 text-center text-text-gray-600 text-base">
-            <p>{getAppliedFiltersText()}</p>
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={applyFilters}
+            className="bg-blue-500 text-white py-3 px-8 rounded-xl border-none cursor-pointer transition-all duration-300 font-semibold shadow-card-shadow inline-flex items-center gap-2 text-lg hover:bg-primary-blue-dark hover:scale-105 active:scale-95 ai-style-change-1"
+          >
+            <Search size={20} className="w-5 h-5" /> Apply Filters
+          </button>
+        </div>
+      </section>
+
+      <section className="w-full max-w-6xl py-6 mx-auto">
+        {loading && (
+          <div className="text-center text-text-gray-600 text-lg py-10 flex flex-col items-center justify-center">
+            <Loader2 className="w-12 h-12 text-primary-green mb-4 animate-spin" />
+            <p>Loading compatible roommates for you...</p>
           </div>
         )}
-      </div>
 
-      {error && (
-        <div
-          className="bg-red-error-bg border border-red-error-border text-red-error-text px-4 py-3 rounded-lg mb-6 flex items-center gap-2 text-base animate-fade-in"
-          role="alert"
-        >
-          <AlertCircle size={20} />
-          <span className="block">{error}</span>
-        </div>
-      )}
+        {error && (
+          <div
+            className="bg-red-error-bg border border-red-error-border text-red-error-text px-4 py-3 rounded-lg mb-6 flex items-center gap-2 text-base"
+            role="alert"
+          >
+            <AlertCircle size={20} className="w-5 h-5 flex-shrink-0" />
+            <p>{error}</p>
+          </div>
+        )}
 
-      {loading && (
-        <div className="text-center text-text-gray-600 text-lg py-10 flex flex-col items-center justify-center">
-          <Loader2 className="w-12 h-12 text-primary-green mb-4 animate-spin" />
-          <p>Loading compatible roommates for you...</p>
-        </div>
-      )}
+        {!loading && !error && displayedRoommates.length === 0 && (
+          <div className="text-center text-text-gray-600 text-lg py-10 flex flex-col items-center justify-center">
+            <Frown size={60} className="text-primary-green mb-4" />
+            <p>No roommates found matching your search criteria.</p>
+          </div>
+        )}
 
-      {!loading && roommates.length === 0 && !error && areFiltersEmpty && (
-        <div className="text-center text-text-gray-600 text-lg py-10 flex flex-col items-center justify-center">
-          <Frown
-            size={60}
-            className="w-[3.75rem] h-[3.75rem] text-text-gray-400 mx-auto mb-4"
-          />
-          <p>Please apply at least one filter to find roommates.</p>
-        </div>
-      )}
+        {!loading && !error && displayedRoommates.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 animate-fade-in-up delay-200">
+            {displayedRoommates.map((roommate) => (
+              <RoommateListingCard key={roommate.id} roommate={roommate} />
+            ))}
+          </div>
+        )}
 
-      {!loading && roommates.length === 0 && !error && !areFiltersEmpty && (
-        <div className="text-center text-text-gray-600 text-lg py-10 flex flex-col items-center justify-center">
-          <Frown
-            size={60}
-            className="w-[3.75rem] h-[3.75rem] text-text-gray-400 mx-auto mb-4"
-          />
-          <p>No roommate as you want. Try adjusting your filters!</p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 w-full max-w-6xl mx-auto animate-fade-in-up">
-        {roommates.map((roommate) => (
-          <RoommateListingCard key={roommate.id} roommate={roommate} />
-        ))}
-      </div>
+        {!loading && !error && displayedRoommates.length > 6 && filtersApplied && (
+          <div className="text-center mt-8">
+            <button
+              onClick={handleShowLess}
+              className="relative bg-gradient-to-r from-gray-500 to-gray-600 text-white py-3 px-10 rounded-xl border-none cursor-pointer transition-all duration-300 font-semibold shadow-lg text-lg hover:from-gray-600 hover:to-gray-700 hover:scale-105 active:scale-95 overflow-hidden group"
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-gray-400 to-gray-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
+              <span className="relative inline-flex items-center gap-2">
+                <Search size={20} className="w-5 h-5" /> Show Less
+              </span>
+            </button>
+          </div>
+        )}
+      </section>
     </div>
   );
 };

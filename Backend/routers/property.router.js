@@ -12,6 +12,6 @@ router.delete('/:id', authMiddleware, deleteProperty);
 router.get('/all', getAllProperties);
 router.get('/:id', getPropertyById);
 router.get('/search', searchProperties);
-router.get('/my-properties', getMyProperties);
+router.get('/my-properties', authMiddleware, getMyProperties);
 
 export default router;
