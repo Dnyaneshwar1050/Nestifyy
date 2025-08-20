@@ -4,8 +4,8 @@ import cookieParser from "cookie-parser";
 const app = express();
 
 app.use(cors({
-    origin: '*', // Allow requests from any origin
-    credentials: true
+  origin: ['http://localhost:5173', 'https://your-production-frontend-domain.com'],
+  credentials: true
 }));
 
 app.use(express.json());

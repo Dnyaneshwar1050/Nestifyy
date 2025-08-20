@@ -10,8 +10,8 @@ router.post('/register', authMiddleware, upload.array('image', 10), createproper
 router.put('/:id', authMiddleware, upload.array('image', 10), updateProperty);
 router.delete('/:id', authMiddleware, deleteProperty);
 router.get('/all', getAllProperties);
+router.get('/my-properties', authMiddleware, getMyProperties);
 router.get('/:id', getPropertyById);
 router.get('/search', searchProperties);
-router.get('/my-properties', authMiddleware, getMyProperties);
 
 export default router;

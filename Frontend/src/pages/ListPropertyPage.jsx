@@ -18,11 +18,7 @@ const ListPropertyPage = () => {
     area: '',
     rent: '',
     deposit: '',
-    // address: '',
-    // locality: '',
     city: '',
-    // district: '',
-    // zipcode: '',
     location: '',
     amenities: [],
     allowBroker: 'yes',
@@ -108,7 +104,6 @@ const ListPropertyPage = () => {
     }
 
     setLoading(true);
-    setSuccessMessage('Property listed successfully!');
     setErrorMessage('');
 
     try {
@@ -135,7 +130,7 @@ const ListPropertyPage = () => {
         withCredentials: true,
       });
 
-      setSuccessMessage('Property is listed');
+      setSuccessMessage('Property listed successfully! Redirecting...');
       trackInteraction('property_listed', 'success', { propertyId: response.data.propertyId });
       setFormData({
         title: '',
@@ -144,25 +139,20 @@ const ListPropertyPage = () => {
         bhkType: '',
         bedrooms: '',
         bathrooms: '',
+        area: '',
         rent: '',
         deposit: '',
-        // address: '',
-        // locality: '',
         city: '',
-        // district: '',
-        // zipcode: '',
         location: '',
         amenities: [],
         allowBroker: 'yes',
       });
       setPropertyImages([]);
-      
-      // Refresh the page after 2 seconds to show the success message
+
       setTimeout(() => {
         window.scrollTo(0, 0);
         navigate('/list-property');
-      }, 2000);
-      
+      }, 3000);
     } catch (error) {
       console.error('Error listing property:', error);
       const errorMsg = error.response?.data?.message || 'Failed to list property. Please try again.';
@@ -174,64 +164,61 @@ const ListPropertyPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-bg-gray-50 p-6 md:p-12 flex flex-col items-center">
-      <h1 className="text-4xl md:text-5xl font-extrabold text-text-gray-800 text-center mb-10 relative">
-        <span className="relative inline-block pb-2">
-          List Your Property
-          <span className="content-[''] absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-1 bg-primary-blue rounded-full"></span>
-        </span>
+    <div className="min-h-screen bg-gray-100 p-6 md:p-12 flex flex-col items-center">
+      <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800 text-center mb-10 relative">
+        List Your Property
+        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-1 bg-blue-600 rounded-full"></span>
       </h1>
-      <p className="text-center text-text-gray-600 text-lg mb-8 max-w-3xl leading-relaxed">
-        Provide details about your room or property to connect with potential tenants or roommates.
+      <p className="text-center text-gray-600 text-lg mb-8 max-w-3xl leading-relaxed">
+        Provide details about your property to connect with potential tenants or roommates.
       </p>
 
       {successMessage && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-2 text-base w-full max-w-[1000px] animate-fade-in" role="alert">
-          <CheckCircle size={20} />
-          <span className="block font-medium">{successMessage}</span>
+        <div className="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg mb-8 flex items-center gap-3 text-lg w-full max-w-4xl animate-pulse" role="alert">
+          <CheckCircle size={24} />
+          <span className="font-semibold">{successMessage}</span>
         </div>
       )}
       {errorMessage && (
-        <div className="bg-red-error-bg border border-red-error-border text-red-error-text px-4 py-3 rounded-lg mb-6 flex items-center gap-2 text-base w-full max-w-[1000px] animate-fade-in" role="alert">
-          <AlertCircle size={20} />
-          <span className="block font-medium">{errorMessage}</span>
+        <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg mb-8 flex items-center gap-3 text-lg w-full max-w-4xl animate-pulse" role="alert">
+          <AlertCircle size={24} />
+          <span className="font-semibold">{errorMessage}</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-card-bg rounded-2xl shadow-card-shadow-xl p-6 md:p-8 w-full max-w-[1000px] mx-auto flex flex-col gap-6 border border-border-gray-200 animate-fade-in-up">
-        {/* Property Type */}
-        <div className="form-group">
-          <label htmlFor="propertyType" className="block text-lg font-semibold text-text-gray-800 mb-2">Property Type *</label>
-          <select
-            id="propertyType"
-            name="propertyType"
-            value={formData.propertyType}
-            onChange={handleChange}
-            className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 20 20%27 fill=%27currentColor%27%3E%3Cpath fill-rule=%27evenodd%27 d=%27M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%27 clip-rule=%27evenodd%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em] focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
-            required
-            onFocus={() => trackInteraction('focus', 'list_property_type_select')}
-          >
-            <option value="">Select Property Type</option>
-            <option value="apartment">Apartment</option>
-            <option value="shared_room">Shared Room</option>
-            <option value="house">Independent House</option>
-            <option value="villa">Villa</option>
-            <option value="pg">PG/Hostel</option>
-            <option value="commercial">Commercial</option>
-          </select>
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-4xl flex flex-col gap-6 border border-gray-200">
+        <div>
+          <label htmlFor="propertyType" className="block text-lg font-semibold text-gray-800 mb-2">Property Type *</label>
+          <div className="relative">
+            <select
+              id="propertyType"
+              name="propertyType"
+              value={formData.propertyType}
+              onChange={handleChange}
+              className="w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg bg-white text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
+              required
+              onFocus={() => trackInteraction('focus', 'list_property_type_select')}
+            >
+              <option value="">Select Property Type</option>
+              <option value="apartment">Apartment</option>
+              <option value="shared_room">Shared Room</option>
+              <option value="house">Independent House</option>
+              <option value="villa">Villa</option>
+              <option value="pg">PG/Hostel</option>
+              <option value="commercial">Commercial</option>
+            </select>
+          </div>
         </div>
 
-        {/* BHK Type (if applicable) */}
         {(formData.propertyType === 'apartment' || formData.propertyType === 'house' || formData.propertyType === 'villa') && (
-          <div className="form-group">
-            <label htmlFor="bhkType" className="block text-lg font-semibold text-text-gray-800 mb-2">BHK Type</label>
+          <div>
+            <label htmlFor="bhkType" className="block text-lg font-semibold text-gray-800 mb-2">BHK Type</label>
             <select
               id="bhkType"
               name="bhkType"
               value={formData.bhkType}
               onChange={handleChange}
-              className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-1
-              800 appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 20 20%27 fill=%27currentColor%27%3E%3Cpath fill-rule=%27evenodd%27 d=%27M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%27 clip-rule=%27evenodd%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em] focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
+              className="w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg bg-white text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
               onFocus={() => trackInteraction('focus', 'list_property_bhk_select')}
             >
               <option value="">Select BHK Type</option>
@@ -244,30 +231,29 @@ const ListPropertyPage = () => {
           </div>
         )}
 
-        {/* Bedrooms & Bathrooms */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="form-group">
-            <label htmlFor="bedrooms" className="block text-lg font-semibold text-text-gray-800 mb-2">Bedrooms *</label>
+          <div>
+            <label htmlFor="bedrooms" className="block text-lg font-semibold text-gray-800 mb-2">Bedrooms *</label>
             <div className="relative">
-              <Bed className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
+              <Bed className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="number"
                 id="bedrooms"
                 name="bedrooms"
-                value={formData.noOfBedroom}
+                value={formData.bedrooms}
                 onChange={handleChange}
                 placeholder="Number of bedrooms"
-                className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
                 min="0"
                 required
                 onFocus={() => trackInteraction('focus', 'list_property_bedrooms_input')}
               />
             </div>
           </div>
-          <div className="form-group">
-            <label htmlFor="bathrooms" className="block text-lg font-semibold text-text-gray-800 mb-2">Bathrooms</label>
+          <div>
+            <label htmlFor="bathrooms" className="block text-lg font-semibold text-gray-800 mb-2">Bathrooms</label>
             <div className="relative">
-              <Bath className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
+              <Bath className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="number"
                 id="bathrooms"
@@ -275,7 +261,7 @@ const ListPropertyPage = () => {
                 value={formData.bathrooms}
                 onChange={handleChange}
                 placeholder="Number of bathrooms"
-                className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
                 min="0"
                 onFocus={() => trackInteraction('focus', 'list_property_bathrooms_input')}
               />
@@ -283,11 +269,10 @@ const ListPropertyPage = () => {
           </div>
         </div>
 
-        {/* Area */}
-        <div className="form-group">
-          <label htmlFor="area" className="block text-lg font-semibold text-text-gray-800 mb-2">Area (in sq.ft.)</label>
+        <div>
+          <label htmlFor="area" className="block text-lg font-semibold text-gray-800 mb-2">Area (in sq.ft.)</label>
           <div className="relative">
-            <Home className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
+            <Home className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="number"
               id="area"
@@ -295,161 +280,83 @@ const ListPropertyPage = () => {
               value={formData.area}
               onChange={handleChange}
               placeholder="Total area in square feet"
-              className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
               min="1"
               onFocus={() => trackInteraction('focus', 'list_property_area_input')}
             />
           </div>
         </div>
 
-        {/* Rent & Deposit */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="form-group">
-            <label htmlFor="rent" className="block text-lg font-semibold text-text-gray-800 mb-2">Monthly Rent (₹) *</label>
-            <div className="relative">
-              <input
-                type="number"
-                id="rent"
-                name="rent"
-                value={formData.rent}
-                onChange={handleChange}
-                placeholder="Expected monthly rent"
-                className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
-                min="1"
-                required
-                onFocus={() => trackInteraction('focus', 'list_property_rent_input')}
-              />
-            </div>
+          <div>
+            <label htmlFor="rent" className="block text-lg font-semibold text-gray-800 mb-2">Monthly Rent (₹) *</label>
+            <input
+              type="number"
+              id="rent"
+              name="rent"
+              value={formData.rent}
+              onChange={handleChange}
+              placeholder="Expected monthly rent"
+              className="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg bg-white text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
+              min="1"
+              required
+              onFocus={() => trackInteraction('focus', 'list_property_rent_input')}
+            />
           </div>
-          <div className="form-group">
-            <label htmlFor="deposit" className="block text-lg font-semibold text-text-gray-800 mb-2">Security Deposit (₹)</label>
-            <div className="relative">
-              <input
-                type="number"
-                id="deposit"
-                name="deposit"
-                value={formData.deposit}
-                onChange={handleChange}
-                placeholder="Security deposit amount"
-                className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
-                min="0"
-                onFocus={() => trackInteraction('focus', 'list_property_deposit_input')}
-              />
-            </div>
+          <div>
+            <label htmlFor="deposit" className="block text-lg font-semibold text-gray-800 mb-2">Security Deposit (₹)</label>
+            <input
+              type="number"
+              id="deposit"
+              name="deposit"
+              value={formData.deposit}
+              onChange={handleChange}
+              placeholder="Security deposit amount"
+              className="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg bg-white text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
+              min="0"
+              onFocus={() => trackInteraction('focus', 'list_property_deposit_input')}
+            />
           </div>
         </div>
 
-        {/* Address Details */}
-        {/* <div className="form-group">
-          <label htmlFor="address" className="block text-lg font-semibold text-text-gray-800 mb-2">Full Address *</label>
+        <div>
+          <label htmlFor="city" className="block text-lg font-semibold text-gray-800 mb-2">City *</label>
           <div className="relative">
-            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              id="address"
-              name="address"
-              value={formData.address}
+              id="city"
+              name="city"
+              value={formData.city}
               onChange={handleChange}
-              placeholder="House/Flat No., Street Name"
-              className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
+              placeholder="e.g., Pune"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
               required
-              onFocus={() => trackInteraction('focus', 'list_property_address_input')}
+              onFocus={() => trackInteraction('focus', 'list_property_city_input')}
             />
           </div>
-        </div> */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* <div className="form-group">
-            // <label htmlFor="locality" className="block text-lg font-semibold text-text-gray-800 mb-2">Locality *</label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
-              <input
-                type="text"
-                id="locality"
-                name="locality"
-                value={formData.locality}
-                onChange={handleChange}
-                placeholder="e.g., Koregaon Park"
-                className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
-                required
-                onFocus={() => trackInteraction('focus', 'list_property_locality_input')}
-              />
-            </div>
-          </div> */}
-          <div className="form-group">
-            <label htmlFor="city" className="block text-lg font-semibold text-text-gray-800 mb-2">City *</label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
-              <input
-                type="text"
-                id="city"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                placeholder="e.g., Pune"
-                className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
-                required
-                onFocus={() => trackInteraction('focus', 'list_property_city_input')}
-              />
-            </div>
-          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* <div className="form-group">
-            <label htmlFor="district" className="block text-lg font-semibold text-text-gray-800 mb-2">District *</label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
-              <input
-                type="text"
-                id="district"
-                name="district"
-                value={formData.district}
-                onChange={handleChange}
-                placeholder="e.g., Pune District"
-                className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
-                required
-                onFocus={() => trackInteraction('focus', 'list_property_district_input')}
-              />
-            </div>
-          </div> */}
-          {/* <div className="form-group">
-            <label htmlFor="zipcode" className="block text-lg font-semibold text-text-gray-800 mb-2">Zipcode *</label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
-              <input
-                type="text"
-                id="zipcode"
-                name="zipcode"
-                value={formData.zipcode}
-                onChange={handleChange}
-                placeholder="e.g., 411001"
-                className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
-                required
-                onFocus={() => trackInteraction('focus', 'list_property_zipcode_input')}
-              />
-            </div>
-          </div> */}
-        </div>
-        <div className="form-group">
-          <label htmlFor="location" className="block text-lg font-semibold text-text-gray-800 mb-2">Location (e.g., Google Maps link) *</label>
+
+        <div>
+          <label htmlFor="location" className="block text-lg font-semibold text-gray-800 mb-2">Location (e.g., Google Maps link) *</label>
           <div className="relative">
-            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-gray-400" size={20} />
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
               id="location"
               name="location"
               value={formData.location}
               onChange={handleChange}
-              placeholder="e.g., pune"
-              className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
+              placeholder="e.g., https://maps.google.com/..."
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
               required
               onFocus={() => trackInteraction('focus', 'list_property_location_input')}
             />
           </div>
         </div>
 
-        {/* Title */}
-        <div className="form-group">
-          <label htmlFor="title" className="block text-lg font-semibold text-text-gray-800 mb-2">Property Title *</label>
+        <div>
+          <label htmlFor="title" className="block text-lg font-semibold text-gray-800 mb-2">Property Title *</label>
           <input
             type="text"
             id="title"
@@ -457,15 +364,14 @@ const ListPropertyPage = () => {
             value={formData.title}
             onChange={handleChange}
             placeholder="e.g., Cozy 2BHK Apartment in City Center"
-            className="w-full pl-12 pr-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
+            className="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg bg-white text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
             required
             onFocus={() => trackInteraction('focus', 'list_property_title_input')}
           />
         </div>
 
-        {/* Description */}
-        <div className="form-group">
-          <label htmlFor="description" className="block text-lg font-semibold text-text-gray-800 mb-2">Description</label>
+        <div>
+          <label htmlFor="description" className="block text-lg font-semibold text-gray-800 mb-2">Description</label>
           <textarea
             id="description"
             name="description"
@@ -473,24 +379,23 @@ const ListPropertyPage = () => {
             onChange={handleChange}
             rows="5"
             placeholder="Describe your property (e.g., nearby landmarks, features, rules)"
-            className="w-full px-4 py-3.5 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 bg-card-bg text-base shadow-sm text-text-gray-800 min-h-[7.5rem] focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-600 min-h-[120px]"
             onFocus={() => trackInteraction('focus', 'list_property_description_input')}
           ></textarea>
         </div>
 
-        {/* Amenities */}
-        <div className="form-group">
-          <label className="block text-lg font-semibold text-text-gray-800 mb-2">Amenities</label>
+        <div>
+          <label className="block text-lg font-semibold text-gray-800 mb-2">Amenities</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {['Furnished', 'AC', 'Parking', 'Gym', 'Security', 'Power Backup', 'Lift', 'Balcony', 'Pet Friendly', 'Wi-Fi'].map(amenity => (
-              <label key={amenity} className="flex items-center gap-2 text-text-gray-700 cursor-pointer p-2 bg-bg-gray-50 rounded-lg transition-colors duration-200 hover:bg-border-gray-200">
+              <label key={amenity} className="flex items-center gap-2 text-gray-700 cursor-pointer p-2 bg-gray-50 rounded-lg hover:bg-gray-200">
                 <input
                   type="checkbox"
                   name="amenities"
                   value={amenity}
                   checked={formData.amenities.includes(amenity)}
                   onChange={handleChange}
-                  className="h-5 w-5 text-primary-blue rounded border border-border-gray-300 transition-all duration-200 focus:ring-2 focus:ring-blue-focus-ring focus:outline-none cursor-pointer"
+                  className="h-5 w-5 text-blue-600 border-gray-300 focus:ring-2 focus:ring-blue-300 rounded"
                   onFocus={() => trackInteraction('focus', `list_property_amenity_checkbox_${amenity}`)}
                 />
                 <span className="text-base">{amenity}</span>
@@ -499,51 +404,49 @@ const ListPropertyPage = () => {
           </div>
         </div>
 
-        {/* Allow Broker */}
-        <div className="form-group">
-          <label className="block text-lg font-semibold text-text-gray-800 mb-2">Allow Brokers to Contact You?</label>
+        <div>
+          <label className="block text-lg font-semibold text-gray-800 mb-2">Allow Brokers to Contact You?</label>
           <div className="flex items-center gap-6">
-            <label className="inline-flex items-center cursor-pointer">
+            <label className="flex items-center cursor-pointer">
               <input
                 type="radio"
                 name="allowBroker"
                 value="yes"
                 checked={formData.allowBroker === 'yes'}
                 onChange={handleChange}
-                className="h-5 w-5 text-primary-blue transition-all duration-200 border border-border-gray-300 focus:ring-2 focus:ring-blue-focus-ring focus:outline-none cursor-pointer"
+                className="h-5 w-5 text-blue-600 border-gray-300 focus:ring-2 focus:ring-blue-300"
                 onFocus={() => trackInteraction('focus', 'list_property_allow_broker_yes')}
               />
-              <span className="ml-2 text-text-gray-700 text-base">Yes</span>
+              <span className="ml-2 text-gray-700 text-base">Yes</span>
             </label>
-            <label className="inline-flex items-center cursor-pointer">
+            <label className="flex items-center cursor-pointer">
               <input
                 type="radio"
                 name="allowBroker"
                 value="no"
                 checked={formData.allowBroker === 'no'}
                 onChange={handleChange}
-                className="h-5 w-5 text-primary-blue transition-all duration-200 border border-border-gray-300 focus:ring-2 focus:ring-blue-focus-ring focus:outline-none cursor-pointer"
+                className="h-5 w-5 text-blue-600 border-gray-300 focus:ring-2 focus:ring-blue-300"
                 onFocus={() => trackInteraction('focus', 'list_property_allow_broker_no')}
               />
-              <span className="ml-2 text-text-gray-700 text-base">No</span>
+              <span className="ml-2 text-gray-700 text-base">No</span>
             </label>
           </div>
         </div>
 
-        {/* Property Images */}
-        <div className="form-group">
-          <label className="block text-lg font-semibold text-text-gray-800 mb-2">Property Images (Max 5MB per image)</label>
+        <div>
+          <label className="block text-lg font-semibold text-gray-800 mb-2">Property Images (Max 5MB per image)</label>
           <input
             type="file"
             multiple
             accept="image/*"
             onChange={handleImageChange}
-            className="w-full text-text-gray-500 text-base cursor-pointer py-3 px-4 border border-border-gray-300 rounded-lg bg-card-bg shadow-sm transition-colors duration-200 file:mr-4 file:py-2.5 file:px-5 file:rounded-lg file:border-0 file:text-base file:font-medium file:bg-primary-blue-light file:text-primary-blue-dark hover:file:bg-[#bfdbfe] focus:border-primary-blue focus:ring-2 focus:ring-blue-focus-ring focus:outline-none"
+            className="w-full text-gray-500 text-base cursor-pointer py-3 px-4 border border-gray-300 rounded-lg bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-base file:font-medium file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 focus:ring-2 focus:ring-blue-300 focus:border-blue-600"
             onFocus={() => trackInteraction('focus', 'list_property_image_upload_input')}
           />
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {propertyImages.map((file, index) => (
-              <div key={index} className="relative rounded-lg overflow-hidden shadow-card-shadow-md border border-border-gray-200 aspect-[4/3] group">
+              <div key={index} className="relative rounded-lg overflow-hidden shadow-md border border-gray-200 aspect-[4/3] group">
                 <img
                   src={URL.createObjectURL(file)}
                   alt={`Property ${index + 1}`}
@@ -552,7 +455,7 @@ const ListPropertyPage = () => {
                 <button
                   type="button"
                   onClick={() => removeImage(index)}
-                  className="absolute top-2 right-2 bg-red-error-text text-white rounded-full p-1.5 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center shadow-card-shadow-md border-none cursor-pointer hover:bg-red-error-border"
+                  className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center shadow-md hover:bg-red-700"
                   title="Remove image"
                   onMouseEnter={() => trackInteraction('hover', 'list_property_image_remove_button')}
                 >
@@ -563,11 +466,10 @@ const ListPropertyPage = () => {
           </div>
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
-          className={`w-full bg-blue-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all duration-300 shadow-card-shadow-lg text-xl flex items-center justify-center gap-2 border-none cursor-pointer transform scale-100 hover:scale-[1.005] hover:shadow-xl active:scale-99 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+          className={`w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg flex items-center justify-center gap-2 text-lg hover:bg-blue-700 hover:shadow-xl ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:scale-105'}`}
           onClick={() => trackInteraction('click', 'list_property_submit_button')}
         >
           {loading ? (
@@ -577,7 +479,7 @@ const ListPropertyPage = () => {
             </>
           ) : (
             <>
-              <Upload size={22} />
+              <Upload size={20} />
               <span>List Property</span>
             </>
           )}
