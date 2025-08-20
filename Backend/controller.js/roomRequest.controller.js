@@ -131,18 +131,22 @@ const getUserRoomRequests = async (req, res) => {
       return res.status(400).json({ message: "Invalid user ID format" });
     }
 
-    const roomRequests = await RoomRequest.find({ user: userId })
+    const query = RoomRequest.find({ user: userId })
       .populate("user", "name number gender photo")
-      .lean()
-      .catch((err) => {
-        console.error("getUserRoomRequests: MongoDB query error:", {
-          message: err.message,
-          stack: err.stack,
-          userId,
-          timestamp: new Date().toISOString(),
-        });
-        throw new Error("Database query failed");
+      .lean();
+
+    let roomRequests;
+    try {
+      roomRequests = await query;
+    } catch (err) {
+      console.error("getUserRoomRequests: MongoDB query error:", {
+        message: err.message,
+        stack: err.stack,
+        userId,
+        timestamp: new Date().toISOString(),
       });
+      throw new Error("Database query failed");
+    }
 
     console.log("getUserRoomRequests: Fetched room requests:", roomRequests.length);
 

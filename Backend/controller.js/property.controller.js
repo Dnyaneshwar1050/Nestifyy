@@ -348,30 +348,34 @@ const getMyProperties = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized: No user ID found" });
     }
 
-    // Validate ownerId as a valid ObjectId
     if (!mongoose.Types.ObjectId.isValid(ownerId)) {
       console.error("getMyProperties: Invalid ownerId:", ownerId);
       return res.status(400).json({ message: "Invalid user ID format" });
     }
 
-    const properties = await Property.find({ owner: ownerId })
+    const query = Property.find({ owner: ownerId })
       .populate({ path: "owner", select: "name email number", strictPopulate: false })
-      .lean()
-      .catch((err) => {
-        console.error("getMyProperties: MongoDB query error:", {
-          message: err.message,
-          stack: err.stack,
-          ownerId,
-        });
-        throw new Error("Database query failed");
+      .lean();
+
+    let properties;
+    try {
+      properties = await query;
+    } catch (err) {
+      console.error("getMyProperties: MongoDB query error:", {
+        message: err.message,
+        stack: err.stack,
+        ownerId,
+        timestamp: new Date().toISOString(),
       });
+      throw new Error("Database query failed");
+    }
 
     console.log("getMyProperties: Fetched properties:", properties.length);
 
     const sanitizedProperties = properties.map((property) => ({
       ...property,
       imageUrls: Array.isArray(property.imageUrls) ? property.imageUrls : [],
-      owner: property.owner || { name: "Unknown", email: "Unknown", phone: "" },
+      owner: property.owner || { name: "Unknown", email: "Unknown", number: "" },
     }));
 
     res.status(200).json({ properties: sanitizedProperties });
