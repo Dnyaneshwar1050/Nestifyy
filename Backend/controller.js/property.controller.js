@@ -355,7 +355,7 @@ const getMyProperties = async (req, res) => {
     }
 
     const properties = await Property.find({ owner: ownerId })
-      .populate({ path: "owner", select: "name email phone", strictPopulate: false })
+      .populate({ path: "owner", select: "name email number", strictPopulate: false })
       .lean()
       .catch((err) => {
         console.error("getMyProperties: MongoDB query error:", {
