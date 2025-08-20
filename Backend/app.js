@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://your-production-frontend-domain.com'],
+  origin: ['http://localhost:5173', 'https://nestify-tt1a.onrender.com'],
   credentials: true
 }));
 
