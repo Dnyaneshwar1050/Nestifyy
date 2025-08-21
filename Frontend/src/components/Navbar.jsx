@@ -350,7 +350,8 @@ const Navbar = () => {
                 Broker Zone
               </NavLink>
             )}
-            {isAuthenticated && (
+            {isAuthenticated ? (
+              <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col space-y-2">
               <NavLink
                 to="/profile"
                 onClick={() => {
@@ -366,28 +367,7 @@ const Navbar = () => {
                 }
               >
                 Profile
-              </NavLink>
-            )}
-            {isAuthenticated ? (
-              <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col space-y-2">
-                {userRole === "user" && (
-                  <NavLink
-                    to="/dashboard"
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      trackInteraction("click", "mobile_nav_dashboard");
-                    }}
-                    className={({ isActive }) =>
-                      `block py-3 px-4 rounded-lg transition-colors duration-200 text-base ${
-                        isActive
-                          ? "text-blue-700 bg-blue-50 font-semibold"
-                          : "text-gray-700 hover:bg-gray-50 hover:text-blue-700"
-                      }`
-                    }
-                  >
-                    Dashboard
-                  </NavLink>
-                )}
+              </NavLink> 
                 {isAdmin && (
                   <NavLink
                     to="/admin-panel"
