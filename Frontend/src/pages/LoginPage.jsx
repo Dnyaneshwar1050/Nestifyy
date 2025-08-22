@@ -1,6 +1,6 @@
 // src/pages/LoginPage.jsx
 import React, { useState, useContext, useEffect } from 'react';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import axios from 'axios';
@@ -13,15 +13,17 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState('');
+  const [mounted, setMounted] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     trackInteraction('page_view', 'login_page');
+    setMounted(true);
   }, [trackInteraction]);
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/profile'); 
+      navigate('/'); 
     }
   }, [isAuthenticated, navigate]);
 
@@ -55,132 +57,216 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md animate-fade-in-up">
-        <h2 className="text-3xl font-bold text-gray-800 text-center mb-2">Welcome Back!</h2>
-        <p className="text-gray-600 text-center mb-8">Sign in to your account</p>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6 flex items-center gap-2 text-sm animate-fade-in" role="alert">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-            <span className="block sm:inline">{error}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-6">
-            <label htmlFor="email" className="block text-gray-700 text-sm font-semibold mb-2">Email Address</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="email"
-                id="email"
-                className={`w-full px-4 py-3 border border-gray-300 rounded-lg pr-10 outline-none transition-all duration-200 pl-10
-                  ${focusedField === 'email' ? 'border-blue-500 ring-1 ring-blue-500' : ''}`}
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onFocus={() => setFocusedField('email')}
-                onBlur={() => setFocusedField('')}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <label htmlFor="password" className="block text-gray-700 text-sm font-semibold mb-2">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                className={`w-full px-4 py-3 border border-gray-300 rounded-lg pr-10 outline-none transition-all duration-200 pl-10
-                  ${focusedField === 'password' ? 'border-blue-500 ring-1 ring-blue-500' : ''}`}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onFocus={() => setFocusedField('password')}
-                onBlur={() => setFocusedField('')}
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer bg-transparent border-none p-0"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-
-          <button
-  type="submit"
-  className={`w-full bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 text-white py-3 px-4 rounded-full font-bold text-lg shadow-lg transition-all duration-300 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl active:scale-98 flex items-center justify-center gap-3 ${
-    isLoading ? 'opacity-80 cursor-not-allowed' : ''
-  }`}
-  disabled={isLoading}
->
-  {isLoading ? (
-    <>
-      <Loader2 className="w-5 h-5 animate-spin" />
-      <span>Logging In...</span>
-    </>
-  ) : (
-    <>
-      <span>Login</span>
-      <ArrowRight className="w-5 h-5" />
-    </>
-  )}
-</button>
-        </form>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          {/* <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-3 text-gray-500">Or continue with</span>
-          </div> */}
-        </div>
-
-
-        {/* <button
-          className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg border border-gray-300 bg-white text-gray-700 font-semibold transition-all duration-300 hover:bg-gray-50 active:scale-98"
-          onClick={() => { /* Implement Google Login */ }{/*trackInteraction('click', 'google_login_button'); }}
-        >
-          <img src="https://www.google.com/favicon.ico" alt="Google icon" className="w-5 h-5" />
-          <span>Sign in with Google</span>
-        </button> */}
-
-        <p className="text-center text-gray-600 text-sm mt-6">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-blue-600 hover:underline font-medium" onClick={() => trackInteraction('click', 'register_link_from_login')}>
-            Register here
-          </Link>
-        </p>
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%239C92AC%22%20fill-opacity%3D%220.1%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%224%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-20"></div>
+        
+        {/* Floating Elements */}
+        <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full opacity-20 animate-float-slow"></div>
+        <div className="absolute top-40 right-20 w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-30 animate-float-medium"></div>
+        <div className="absolute bottom-20 left-1/4 w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-25 animate-float-fast"></div>
+        <div className="absolute bottom-40 right-10 w-24 h-24 bg-gradient-to-r from-green-400 to-cyan-400 rounded-full opacity-15 animate-float-slow"></div>
+        
+        {/* Gradient Orbs */}
+        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-gradient-radial from-blue-500/30 to-transparent rounded-full blur-3xl animate-pulse-slow"></div>
+        <div className="absolute bottom-1/4 right-1/3 w-80 h-80 bg-gradient-radial from-purple-500/30 to-transparent rounded-full blur-3xl animate-pulse-slow delay-1000"></div>
       </div>
 
+      {/* Content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div className={`bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-1000 ${
+          mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+        }`}>
+          
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="relative">
+                <div className="w-16 h-16 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Sparkles className="w-8 h-8 text-white animate-pulse" />
+                </div>
+                <div className="absolute -inset-2 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-2xl opacity-20 animate-ping"></div>
+              </div>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
+              Welcome Back!
+            </h2>
+            <p className="text-white/80 text-lg">
+              Sign in to continue your journey
+            </p>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-500/20 backdrop-blur-sm border border-red-500/30 text-red-100 px-4 py-3 rounded-2xl relative mb-6 flex items-center gap-2 text-sm animate-shake">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span className="block sm:inline">{error}</span>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Field */}
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-white/90 text-sm font-semibold tracking-wide">
+                Email Address
+              </label>
+              <div className="relative group">
+                <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${
+                  focusedField === 'email' ? 'text-cyan-400' : 'text-white/60'
+                }`} />
+                <input
+                  type="email"
+                  id="email"
+                  className={`w-full px-12 py-4 bg-white/10 backdrop-blur-sm border-2 rounded-2xl outline-none transition-all duration-300 text-white placeholder-white/60 ${
+                    focusedField === 'email' 
+                      ? 'border-cyan-400 bg-white/20 shadow-[0_0_20px_rgba(34,211,238,0.3)]' 
+                      : 'border-white/20 hover:border-white/40'
+                  }`}
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField('')}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div className="space-y-2">
+              <label htmlFor="password" className="block text-white/90 text-sm font-semibold tracking-wide">
+                Password
+              </label>
+              <div className="relative group">
+                <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${
+                  focusedField === 'password' ? 'text-cyan-400' : 'text-white/60'
+                }`} />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  className={`w-full px-12 py-4 bg-white/10 backdrop-blur-sm border-2 rounded-2xl outline-none transition-all duration-300 text-white placeholder-white/60 pr-14 ${
+                    focusedField === 'password' 
+                      ? 'border-cyan-400 bg-white/20 shadow-[0_0_20px_rgba(34,211,238,0.3)]' 
+                      : 'border-white/20 hover:border-white/40'
+                  }`}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => setFocusedField('')}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-cyan-400 transition-colors duration-300"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className={`w-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 text-white py-4 px-6 rounded-2xl font-bold text-lg shadow-xl transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden group ${
+                isLoading ? 'opacity-80 cursor-not-allowed' : 'hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] hover:scale-105 active:scale-95'
+              }`}
+              disabled={isLoading}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative flex items-center gap-3">
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                    <span>Signing In...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign In</span>
+                    <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" />
+                  </>
+                )}
+              </div>
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="mt-8 text-center">
+            <p className="text-white/80 text-sm">
+              Don't have an account?{' '}
+              <Link 
+                to="/register" 
+                className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors duration-300 hover:underline" 
+                onClick={() => trackInteraction('click', 'register_link_from_login')}
+              >
+                Create one now
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Custom Styles */}
       <style>{`
-        /* Animations */
-        @keyframes fade-in-up {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(180deg); }
         }
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
+        
+        @keyframes float-medium {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-15px) rotate(90deg); }
         }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        
+        @keyframes float-fast {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(270deg); }
         }
-        .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
-        .animate-fade-in-up.delay-100 { animation-delay: 0.1s; }
-        .animate-fade-in-up.delay-200 { animation-delay: 0.2s; }
-        .animate-fade-in-up.delay-300 { animation-delay: 0.3s; }
-        .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
+        
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(1.1); }
+        }
+        
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
+        }
+        
+        .animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
+        .animate-float-medium { animation: float-medium 4s ease-in-out infinite; }
+        .animate-float-fast { animation: float-fast 3s ease-in-out infinite; }
+        .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
+        .animate-shake { animation: shake 0.5s ease-in-out; }
+        .delay-1000 { animation-delay: 1s; }
+        
+        .bg-gradient-radial {
+          background: radial-gradient(circle, var(--tw-gradient-stops));
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: rgba(34, 211, 238, 0.5);
+          border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(34, 211, 238, 0.8);
+        }
       `}</style>
     </div>
   );

@@ -506,7 +506,7 @@ const UsersManagement = () => {
                   type="number"
                   id="age"
                   name="age"
-                  value={formData.age || ''}
+                  value={formData.age }
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-colors"
                   placeholder="Enter age"

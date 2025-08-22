@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Home, Bed, Bath } from 'lucide-react';
+import { MapPin, Home, Building } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 
 const DEFAULT_IMAGE = "https://placehold.co/400x250/E0F7FA/00838F?text=Property";
@@ -131,13 +131,10 @@ const PropertyListingCard = ({ property }) => {
         <p className="text-2xl font-bold text-blue-600 mb-4">{property.rent || 'N/A'}</p>
         <div className="flex justify-between text-gray-700 text-sm border-t border-gray-200 pt-4 mt-auto">
           <div className="flex items-center">
-            <Bed size={16} className="mr-1 text-gray-500" /> {property.noOfBedroom ?? 'N/A'} Beds
-          </div>
+            <Building size={16} className="mr-1 text-gray-500" /> {property.propertyType || 'N/A'} 
+          </div> 
           <div className="flex items-center">
-            <Bath size={16} className="mr-1 text-gray-500" /> {property.bathrooms ?? 'N/A'} Baths
-          </div>
-          <div className="flex items-center">
-            <Home size={16} className="mr-1 text-gray-500" /> {property.area || 'N/A'}
+            <Home size={16} className="mr-1 text-gray-500" /> {property.area || 'N/A'} Sq Ft
           </div>
         </div>
         <Link

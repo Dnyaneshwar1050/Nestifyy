@@ -112,7 +112,7 @@ const PropertyDetailPage = () => {
       const cleanedPhone = property.owner.phone.replace(/\s/g, ''); // Remove spaces
       // Basic validation for international phone number format (starts with +, then 10-15 digits)
       if (/^\+\d{10,15}$/.test(cleanedPhone)) {
-        const message = `Hi ${property.owner.name},\n\nI'm interested in your property "${property.title}" located in ${property.city}. Could you please share more details or schedule a visit?\n\nProperty Link: ${window.location.href}`;
+        const message = `Hi ${property.owner.name},\n\nI'm interested in your property "${property.title}" located in ${property.city}. Could you please share more details or schedule a visit?\n\nProperty.`;
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodedMessage}`;
         window.open(whatsappUrl, '_blank');
@@ -192,7 +192,7 @@ const PropertyDetailPage = () => {
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-4 text-xl font-bold text-gray-900">
             <span className="flex items-center text-green-700">
-              {property.rent}
+              Rent: ₹{property.rent.toLocaleString()}
             </span>
             {property.deposit && (
               <span className="flex items-center text-orange-700">
@@ -297,15 +297,6 @@ const PropertyDetailPage = () => {
                   <span className="font-semibold">BHK Type:</span> <span className="ml-2">{property.bhkType}</span>
                 </div>
               )}
-              {/* <div className="flex items-center text-gray-800 text-lg">
-                <input
-                  type="checkbox"
-                  checked={property.allowBroker}
-                  readOnly
-                  className="mr-3 h-5 w-5 text-blue-600 rounded focus:ring-blue-500"
-                />
-                <span className="font-semibold">Broker Allowed:</span> <span className="ml-2">{property.allowBroker ? 'Yes' : 'No'}</span>
-              </div> */}
             </div>
 
             {property.description && (

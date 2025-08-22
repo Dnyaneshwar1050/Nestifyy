@@ -22,10 +22,6 @@ const createproperty = async (req, res) => {
       allowBroker,
     } = req.body;
 
-    console.log("createproperty: Received body:", req.body);
-    console.log("createproperty: Received files:", req.files);
-    console.log("createproperty: req.user:", req.user);
-
     const ownerId = req.user?._id || req.user?.id;
     if (!ownerId) {
       if (req.files && req.files.length > 0) {
@@ -104,51 +100,85 @@ const updateProperty = async (req, res) => {
     const updates = req.body;
     const authenticatedUserId = req.user._id;
 
-    let imageUrls = updates.imageUrls || [];
-    if (req.files && req.files.length > 0) {
-      imageUrls = await Promise.all(req.files.map((file) => uploadImage(file)));
-    }
-
     const propertyToUpdate = await Property.findById(propertyId);
     if (!propertyToUpdate) {
       return res.status(404).json({ message: "Property not found" });
     }
 
     if (propertyToUpdate.owner.toString() !== authenticatedUserId.toString()) {
-      return res
-        .status(403)
-        .json({ message: "Unauthorized to update this property" });
+      return res.status(403).json({ message: "Unauthorized to update this property" });
     }
 
-    if (imageUrls.length > 0 && propertyToUpdate.imageUrls.length > 0) {
+    // Handle images
+    let newImageUrls = [];  // Explicitly define for new uploads
+    if (req.files && req.files.length > 0) {
+      newImageUrls = await Promise.all(req.files.map((file) => uploadImage(file)));
+    }
+
+    let existingImageUrls = updates.existingImageUrls || [];  // From frontend (kept images)
+    if (!Array.isArray(existingImageUrls)) {
+      existingImageUrls = [existingImageUrls];
+    }
+
+    // If no existing sent and no new uploads, fallback to current DB images or updates.imageUrls
+    if (existingImageUrls.length === 0 && newImageUrls.length === 0) {
+      existingImageUrls = updates.imageUrls ? (Array.isArray(updates.imageUrls) ? updates.imageUrls : [updates.imageUrls]) : propertyToUpdate.imageUrls;
+    }
+
+    const updatedImageUrls = [...existingImageUrls, ...newImageUrls];
+
+    // Delete removed images (old ones not in existing)
+    const removedImages = propertyToUpdate.imageUrls.filter(
+      (url) => !existingImageUrls.includes(url)
+    );
+    if (removedImages.length > 0) {
       await Promise.all(
-        propertyToUpdate.imageUrls.map((imageUrl) => {
+        removedImages.map((imageUrl) => {
           const publicId = imageUrl.split("/").pop().split(".")[0];
           return deleteImage(publicId);
         })
       );
     }
 
+    // Remove protected fields from updates
+    delete updates.owner;
+    delete updates.createdAt;
+    delete updates.updatedAt;
+    delete updates.__v;
+    delete updates.status;
+    delete updates.existingImageUrls;  // Clean up
+    delete updates.imageUrls;  // Avoid duplication
+
+    // Parse specific fields
+    if (updates.allowBroker !== undefined) {
+      updates.allowBroker = updates.allowBroker === "true" || updates.allowBroker === true || updates.allowBroker === "yes";
+    }
+    if (updates.amenities && !Array.isArray(updates.amenities)) {
+      updates.amenities = [updates.amenities];
+    }
+    if (updates.rent) updates.rent = Number(updates.rent);
+    if (updates.deposit) updates.deposit = Number(updates.deposit);
+    // ... similarly for other numeric fields
+
     const updatedProperty = await Property.findByIdAndUpdate(
       propertyId,
-      { $set: { ...updates, imageUrls } },
+      { $set: { ...updates, imageUrls: updatedImageUrls } },
       { new: true }
     );
 
-    if (!updatedProperty) {
-      return res.status(404).json({ message: "Property not found" });
-    }
-
     res.status(200).json({
+      message: "Property updated successfully!",
       property: updatedProperty,
-      message: "Property updated successfully",
     });
   } catch (error) {
     console.error("Error in updateProperty:", error);
     if (req.files && req.files.length > 0) {
       await Promise.all(req.files.map((file) => fs.unlink(file.path)));
     }
-    res.status(500).json({ message: "Server error, please try again later" });
+    res.status(500).json({
+      message: "Failed to update property",
+      error: error.message,
+    });
   }
 };
 

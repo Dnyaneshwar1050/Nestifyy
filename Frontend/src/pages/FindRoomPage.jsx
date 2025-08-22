@@ -15,8 +15,6 @@ const FindRoomPage = () => {
     location: '',
     minPrice: '',
     maxPrice: '',
-    beds: '',
-    baths: '',
     propertyType: '',
   });
   const [filtersApplied, setFiltersApplied] = useState(false);
@@ -111,16 +109,10 @@ const FindRoomPage = () => {
         const matchesMaxPrice = filters.maxPrice
           ? property.rent <= parseFloat(filters.maxPrice)
           : true;
-        const matchesBeds = filters.beds
-          ? property.noOfBedroom === parseInt(filters.beds)
-          : true;
-        const matchesBaths = filters.baths
-          ? property.bathrooms === parseInt(filters.baths)
-          : true;
         const matchesPropertyType = filters.propertyType
           ? property.propertyType === filters.propertyType
           : true;
-        return matchesLocation && matchesMinPrice && matchesMaxPrice && matchesBeds && matchesBaths && matchesPropertyType;
+        return matchesLocation && matchesMinPrice && matchesMaxPrice && matchesPropertyType;
       });
 
       setProperties(filtered);
@@ -206,47 +198,6 @@ const FindRoomPage = () => {
                 className="w-full px-4 py-3 pl-10 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 text-base text-text-gray-800 bg-card-bg shadow-sm focus:border-primary-blue focus:ring-2 focus:ring-blue-300"
                 onFocus={() => trackInteraction('focus', 'filter_max_price_input')}
               />
-            </div>
-          </div>
-
-          <div className="filter-group">
-            <label htmlFor="beds" className="block text-sm font-semibold text-text-gray-700 mb-2">Bedrooms</label>
-            <div className="relative">
-              <Bed size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-gray-400" />
-              <select
-                id="beds"
-                name="beds"
-                value={filters.beds}
-                onChange={handleFilterChange}
-                className="w-full px-4 py-3 pl-10 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 text-base text-text-gray-800 bg-card-bg shadow-sm appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 20 20%27 fill=%27currentColor%27%3E%3Cpath fill-rule=%27evenodd%27 d=%27M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%27 clip-rule=%27evenodd%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em] focus:border-primary-blue focus:ring-2 focus:ring-blue-300"
-                onFocus={() => trackInteraction('focus', 'filter_beds_select')}
-              >
-                <option value="">Any</option>
-                <option value="1">1 BHK</option>
-                <option value="2">2 BHK</option>
-                <option value="3">3 BHK</option>
-                <option value="4">4+ BHK</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="filter-group">
-            <label htmlFor="baths" className="block text-sm font-semibold text-text-gray-700 mb-2">Bathrooms</label>
-            <div className="relative">
-              <Bath size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-gray-400" />
-              <select
-                id="baths"
-                name="baths"
-                value={filters.baths}
-                onChange={handleFilterChange}
-                className="w-full px-4 py-3 pl-10 border border-border-gray-300 rounded-lg outline-none transition-all duration-200 text-base text-text-gray-800 bg-card-bg shadow-sm appearance-none bg-[url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 20 20%27 fill=%27currentColor%27%3E%3Cpath fill-rule=%27evenodd%27 d=%27M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%27 clip-rule=%27evenodd%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:1.5em] focus:border-primary-blue focus:ring-2 focus:ring-blue-300"
-                onFocus={() => trackInteraction('focus', 'filter_baths_select')}
-              >
-                <option value="">Any</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3+</option>
-              </select>
             </div>
           </div>
 

@@ -14,7 +14,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-gray-900 text-gray-300 py-10 px-6 rounded-t-xl shadow-inner mt-12 md:px-12">
+    <footer className="bg-gray-900 text-gray-300 py-10 px-6 shadow-inner md:px-12">
       <div className="grid grid-cols-1 gap-10 max-w-screen-xl mx-auto md:grid-cols-3">
         {/* Nestify Brand Info */}
         <div className="md:col-span-1">

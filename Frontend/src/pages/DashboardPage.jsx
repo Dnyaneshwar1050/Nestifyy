@@ -218,15 +218,15 @@ const DashboardPage = () => {
       const data = new FormData();
       for (const key in editingProperty) {
         if (key === "amenities") {
-          editingProperty.amenities.forEach((amenity) => data.append("amenities", amenity));  // No "[]"
-        } else if (key === "images") {
-          editingProperty.images.forEach((url) => data.append("existingImageUrls", url));  // Send kept URLs
+          editingProperty.amenities.forEach((amenity) => data.append("amenities", amenity));
+        } else if (key === "images") { 
+          editingProperty.images.forEach((url) => data.append("existingImageUrls", url));
         } else if (key !== "_id") {
           data.append(key, editingProperty[key]);
         }
       }
       propertyImages.forEach((image) => {
-        data.append("image", image);  // New files
+        data.append("image", image);  
       });
 
       await axios.put(
@@ -744,14 +744,14 @@ const DashboardPage = () => {
                       className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"
                     />
                     <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                      {editingProperty.images?.map((url, index) => (
+                      {editingProperty.imageUrls?.map((url, index) => (
                         <div key={`existing-${index}`} className="relative rounded-lg overflow-hidden shadow-md border border-gray-200 aspect-[4/3] group">
                           <img src={url} alt={`Property ${index + 1}`} className="w-full h-full object-cover" />
                           <button
                             type="button"
                             onClick={() => {
-                              const newImages = editingProperty.images.filter((_, i) => i !== index);
-                              setEditingProperty({ ...editingProperty, images: newImages });
+                              const newImageUrls = editingProperty.imageUrls.filter((_, i) => i !== index);
+                              setEditingProperty({ ...editingProperty, imageUrls: newImageUrls });
                             }}
                             className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                           >
