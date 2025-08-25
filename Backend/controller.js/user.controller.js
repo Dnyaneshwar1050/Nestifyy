@@ -6,8 +6,9 @@ import fs from "fs";
 
 const registerUser = async (req, res) => {
   try {
-    console.log("Request body:", req.body);
-    console.log("Request file:", req.file);
+
+    console.log('Request body:', req.body); // Debug
+    console.log('Request file:', req.file);
 
     const {
       name,
@@ -15,77 +16,56 @@ const registerUser = async (req, res) => {
       password,
       role,
       phone,
+      profession,
       gender,
       age,
       photo,
-      location,
-      profession,
+      location
     } = req.body;
 
-    if (!name || !email || !password || !phone || !age) {
-      return res.status(400).json({
-        message: "Name, email, password, phone, and age are required",
-      });
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Name, email, and password are required" });
+    }
+
+    if (!/^\+\d{10,15}$/.test(phone)) {
+      return res.status(400).json({ message: "Invalid phone number format. Use country code (e.g., +1234567890)" });
     }
 
     const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(400).json({ message: "User already exists" });
+    if (existingUser) return res.status(400).json({ message: 'User already exists' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    let photoUrl = "";
+    let photoUrl = '';
     if (req.file) {
-      console.log("File details:", {
-        path: req.file.path,
-        filename: req.file.filename,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-      });
+      console.log('Uploading file:', req.file);
       try {
-        const result = await uploadImage(req.file); // Ensure req.file is passed correctly
-        console.log("Cloudinary upload result:", result);
-        photoUrl = result.secure_url;
+        photoUrl = await uploadImage(req.file);
       } catch (error) {
-        console.error("Photo upload error:", error);
-        return res
-          .status(500)
-          .json({ message: "Failed to upload photo", error: error.message });
+        return res.status(500).json({ message: error.message });
       }
-    } else {
-      console.log("No file uploaded in req.file");
     }
 
-    const user = new User({
+    const user = new User ({
       name,
       email,
-      password: hashedPassword,
-      role: role || "user",
-      age: Number(age),
+      password:hashedPassword,
+      role,
+      age:Number(age),
       phone,
+      profession,
       location,
-      photo: photoUrl || undefined, // Explicitly set to undefined if empty
-      gender: gender || "Other",
+      gender,
+      photo:photoUrl,
     });
-
-    console.log("User data before save:", user);
     await user.save();
 
-    res.status(201).json({
-      user: {
-        id: user._id,
-        name,
-        email,
-        photo: photoUrl,
-        phone,
-        age,
-        location,
-        gender,
-      },
-    });
+    res.status(201).json({ user: { id: user._id, name, email, photo: photoUrl, phone, age, profession, location, gender } });
+
   } catch (error) {
-    console.error("Register error:", error.message);
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error('Register error:', error.message);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
@@ -155,49 +135,41 @@ const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     const updateData = { ...req.body };
-    delete updateData.password; // Don't allow password update through this route
-    delete updateData.isAdmin; // Don't allow role change through this route
-
+    delete updateData.password; 
+    
     // Handle photo upload if present
     if (req.file) {
-      console.log("File details:", {
-        path: req.file.path,
-        filename: req.file.filename,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-      });
       // Delete old photo if exists
       const user = await User.findById(userId);
       if (user && user.photo) {
         // Extract public_id from the URL (assuming Cloudinary)
-        const publicId = user.photo.split("/").pop().split(".")[0];
-        console.log("Deleting old photo with publicId:", publicId);
+        const publicId = user.photo.split('/').pop().split('.')[0];
         await deleteImage(publicId);
       }
-
+      
       const result = await uploadImage(req.file.path);
       updateData.photo = result.secure_url;
       // Remove the temp file
       fs.unlinkSync(req.file.path);
     }
-
+    
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
       { new: true }
-    ).select("-password");
-
+    ).select('-password');
+    
     if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
-
+    
     res.status(200).json({
       user: updatedUser,
-      message: "Profile updated successfully",
+      message: 'Profile updated successfully'
     });
   } catch (error) {
-    console.error("Error in updateUserProfile:", error);
-    res.status(500).json({ message: "Server error, please try again later" });
+    console.error('Error in updateUserProfile:', error);
+    res.status(500).json({ message: 'Server error, please try again later',error: error.message });
   }
 };
 
