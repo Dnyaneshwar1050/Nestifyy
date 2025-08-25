@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Search, MapPin, Home, Users, Sparkles } from 'lucide-react';
+import { Search, MapPin, Home, Users, Building2 } from 'lucide-react';
 
 // Mock context for demo
 const AppContext = React.createContext({
@@ -23,154 +23,140 @@ const HeroSection = ({ initialSearch = '', activeTab = 'find_room', onTabChange 
   };
 
   return (
-    <main className="relative min-h-[80vh] flex items-center justify-center p-4 md:p-8 overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800">
-        <div className="absolute inset-0 bg-black/20"></div>
-        {/* Floating particles */}
-        <div className="absolute inset-0">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-2 h-2 bg-white/20 rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`
-              }}
-            />
-          ))}
-        </div>
-        {/* Gradient orbs */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+    <main className="relative min-h-[75vh] flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }}></div>
       </div>
 
-      <div className="relative z-10 text-center text-white max-w-6xl w-full px-4">
-        {/* Header with icon */}
+      <div className="relative z-10 text-center max-w-6xl w-full px-4 py-12">
+        {/* Professional header */}
         <div className="flex justify-center mb-8">
-          <div className="relative">
-            <div className="absolute inset-0 bg-white/20 rounded-full blur-xl"></div>
-            {/* <div className="relative bg-white/10 backdrop-blur-md rounded-full p-4 border border-white/20">
-              <Home size={32} className="text-yellow-300" />
-            </div> */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <Building2 size={40} className="text-indigo-600" />
           </div>
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-black mb-8 leading-tight">
-          <span className="bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent drop-shadow-2xl">
-            Find Your Perfect
-          </span>
+        <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-gray-900">
+          Housing
           <br />
-          <span className="bg-gradient-to-r from-purple-200 via-pink-200 to-yellow-200 bg-clip-text text-transparent">
-            Living Space
-          </span>
+          <span className="text-indigo-600">Solutions</span>
         </h1>
         
-        <p className="text-xl md:text-2xl mb-12 text-blue-100 font-light max-w-3xl mx-auto leading-relaxed">
-          Discover amazing rooms, houses, and connect with perfect roommates in your dream location
+        <p className="text-lg md:text-xl mb-12 text-gray-600 font-normal max-w-3xl mx-auto leading-relaxed">
+          Connect with quality housing and perfect roommates through our trusted platform
         </p>
 
-        {/* Enhanced Search Card */}
-        <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-          <div className="relative bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-6 md:p-8 w-full">
-            
-            {/* Enhanced Tabs */}
-            <div className="flex justify-center mb-8">
-              <div className="bg-gray-100/80 backdrop-blur-sm rounded-2xl p-2 flex">
-                <button
-                  className={`px-8 py-4 font-semibold text-base rounded-xl transition-all duration-300 flex items-center gap-3 ${
-                    activeTab === 'find_room' 
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg transform scale-105' 
-                      : 'text-gray-600 hover:text-indigo-600 hover:bg-white/50'
-                  }`}
-                  onClick={() => {
-                    onTabChange('find_room');
-                    trackInteraction('click', 'search_tab_find_room');
-                    setSearchQuery('');
-                    setSearchError(null);
-                    onSearch('', 'find_room');
-                  }}
-                >
-                  <Home size={20} />
-                  Find Room
-                </button>
-                <button
-                  className={`px-3 py-4 font-semibold text-base rounded-xl transition-all duration-300 flex items-center gap-3 ${
-                    activeTab === 'find_roommate' 
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg transform scale-105' 
-                      : 'text-gray-600 hover:text-purple-600 hover:bg-white/50'
-                  }`}
-                  onClick={() => {
-                    onTabChange('find_roommate');
-                    trackInteraction('click', 'search_tab_find_roommate');
-                    setSearchQuery('');
-                    setSearchError(null);
-                    onSearch('', 'find_roommate');
-                  }}
-                >
-                  <Users size={20} />
-                  Find Roommate
-                </button>
-              </div>
-            </div>
-
-            {/* Enhanced Search Input */}
-            <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
-              <div className="relative flex-grow w-full group">
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative flex items-center">
-                  <MapPin className="absolute left-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={22} />
-                  <Search className="absolute left-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors hidden" size={22} />
-                  <input
-                    type="text"
-                    placeholder={activeTab === 'find_room' ? "Search by area, location, or property type" : "Search by area, city, or location"}
-                    className="w-full pl-14 pr-6 py-5 border-2 border-gray-200 rounded-2xl outline-none transition-all duration-300 text-gray-800 text-lg bg-white/80 backdrop-blur-sm focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 focus:bg-white group-hover:border-gray-300"
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setSearchError(null);
-                    }}
-                    onFocus={() => trackInteraction('focus', `search_input_${activeTab}`)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const trimmedQuery = searchQuery.trim();
-                        if (!trimmedQuery) {
-                          setSearchError('Please enter a search query');
-                          return;
-                        }
-                        trackInteraction('keypress', `search_input_enter_${activeTab}`, { query: trimmedQuery });
-                        onSearch(trimmedQuery, activeTab);
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-              
+        {/* Professional Search Card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 w-full max-w-4xl mx-auto">
+          
+          {/* Clean Tabs */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-gray-50 rounded-xl p-1 flex border border-gray-200">
               <button
-                className="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-10 py-5 rounded-2xl shadow-xl transition-all duration-300 w-full lg:w-auto text-lg font-bold border-none cursor-pointer group hover:from-indigo-700 hover:to-purple-700 hover:shadow-2xl hover:scale-105 active:scale-95"
-                onClick={handleSearch}
+                className={`px-6 py-3 font-semibold text-sm rounded-lg transition-all duration-200 flex items-center gap-2 ${
+                  activeTab === 'find_room' 
+                    ? 'bg-white text-indigo-600 shadow-sm border border-gray-200' 
+                    : 'text-gray-600 hover:text-indigo-600'
+                }`}
+                onClick={() => {
+                  onTabChange('find_room');
+                  trackInteraction('click', 'search_tab_find_room');
+                  setSearchQuery('');
+                  setSearchError(null);
+                  onSearch('', 'find_room');
+                }}
               >
-                <span className="relative z-10 flex items-center justify-center gap-3">
-                  <Search size={22} />
-                  Search Now
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <Home size={18} />
+                Find Property
+              </button>
+              <button
+                className={`px-6 py-3 font-semibold text-sm rounded-lg transition-all duration-200 flex items-center gap-2 ${
+                  activeTab === 'find_roommate' 
+                    ? 'bg-white text-indigo-600 shadow-sm border border-gray-200' 
+                    : 'text-gray-600 hover:text-indigo-600'
+                }`}
+                onClick={() => {
+                  onTabChange('find_roommate');
+                  trackInteraction('click', 'search_tab_find_roommate');
+                  setSearchQuery('');
+                  setSearchError(null);
+                  onSearch('', 'find_roommate');
+                }}
+              >
+                <Users size={18} />
+                Find Roommate
               </button>
             </div>
-            
-            {searchError && (
-              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-                <p className="text-red-600 text-sm font-medium flex items-center gap-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  {searchError}
-                </p>
-              </div>
-            )}
           </div>
+
+          {/* Professional Search Input */}
+          <div className="flex flex-col lg:flex-row items-center gap-4">
+            <div className="relative flex-grow w-full">
+              <div className="relative flex items-center">
+                <MapPin className="absolute left-4 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder={activeTab === 'find_room' ? "Enter location, area, or property type" : "Enter your preferred location"}
+                  className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl outline-none transition-all duration-200 text-gray-700 bg-gray-50 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:bg-white"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSearchError(null);
+                  }}
+                  onFocus={() => trackInteraction('focus', `search_input_${activeTab}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const trimmedQuery = searchQuery.trim();
+                      if (!trimmedQuery) {
+                        setSearchError('Please enter a search query');
+                        return;
+                      }
+                      trackInteraction('keypress', `search_input_enter_${activeTab}`, { query: trimmedQuery });
+                      onSearch(trimmedQuery, activeTab);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            
+            <button
+              className="bg-indigo-600 text-white px-8 py-4 rounded-xl transition-all duration-200 w-full lg:w-auto font-semibold border-none cursor-pointer hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-100 focus:outline-none"
+              onClick={handleSearch}
+            >
+              <span className="flex items-center justify-center gap-2">
+                <Search size={20} />
+                Search
+              </span>
+            </button>
+          </div>
+          
+          {searchError && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm font-medium">
+                {searchError}
+              </p>
+            </div>
+          )}
         </div>
+
+        {/* Trust indicators
+        <div className="mt-12 flex justify-center items-center gap-8 text-gray-500 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            Verified Properties
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            Trusted Community
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+            Secure Platform
+          </div>
+        </div> */}
       </div>
     </main>
   );

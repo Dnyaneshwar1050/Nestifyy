@@ -170,6 +170,29 @@ const getUserRoomRequests = async (req, res) => {
   }
 };
 
+const getRoomRequestById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+      return res.status(400).json({ message: "Invalid room request ID format" });
+    }
+
+    const roomRequest = await RoomRequest.findById(id)
+      .populate("user", "name number gender photo")
+      .lean();
+
+    if (!roomRequest) {
+      return res.status(404).json({ message: "Room request not found" });
+    }
+
+    res.status(200).json(roomRequest);
+  } catch (error) {
+    console.error("Error in getRoomRequestById:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 const deleteRoomRequest = async (req, res) => {
   try {
     const requestId = req.params.id;
@@ -255,4 +278,4 @@ const updateRoomRequest = async (req, res) => {
   }
 };
 
-export { createRoomRequest, getAllRoomRequests, searchRoomRequests, getUserRoomRequests, deleteRoomRequest, updateRoomRequest };
+export { createRoomRequest, getAllRoomRequests, searchRoomRequests, getUserRoomRequests, deleteRoomRequest, updateRoomRequest, getRoomRequestById };

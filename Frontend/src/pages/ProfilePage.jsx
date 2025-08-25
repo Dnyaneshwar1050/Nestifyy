@@ -588,26 +588,6 @@ const ProfilePage = () => {
                       )}
                     </div>
 
-                    {/* Profession
-                    <div className="flex flex-col sm:flex-row sm:items-center p-3 hover:bg-white/50 rounded-xl transition-colors">
-                      <div className="flex items-center mb-2 sm:mb-0 sm:w-32">
-                        <Briefcase className="w-4 h-4 mr-2 text-green-500" />
-                        <span className="text-gray-700 font-medium">Profession:</span>
-                      </div>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editForm.profession || ""}
-                          onChange={(e) => handleInputChange("profession", e.target.value)}
-                          className="flex-1 px-4 py-2 border border-indigo-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-300"
-                          placeholder="Enter profession"
-                        />
-                      ) : (
-                        <span className="text-gray-600 bg-white px-3 py-1 rounded-lg">
-                          {user.profession || "Not specified"}
-                        </span>
-                      )}
-                    </div> */}
                   </div>
                 </div>
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   User,
-  DollarSign,
+  IndianRupee,
   MapPin,
   Loader2,
   AlertCircle,
@@ -13,12 +13,10 @@ import {
   Users,
   List,
   HelpCircle,
-  LogOut,
   Edit,
   Trash2,
   Bed,
   Bath,
-  Camera,
 } from "lucide-react";
 import { AppContext } from "../context/AppContext";
 import axios from "axios";
@@ -354,7 +352,7 @@ const DashboardPage = () => {
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <label className="flex items-center gap-2 font-semibold text-gray-700 w-32">
-                    <DollarSign className="w-5 h-5 text-blue-500" />
+                    <IndianRupee className="w-5 h-5 text-blue-500" />
                     Budget:
                   </label>
                   <input

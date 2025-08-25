@@ -22,6 +22,7 @@ import FeedbackPage from './pages/FeedbackPage';
 import DashboardPage from './pages/DashboardPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PropertyDetailPage from './pages/PropertyDetailPage';
+import RoommateDetailPage from './pages/RoommateDetailPage.jsx';
 
 // admin routes 
 import AdminLayout from './pages/admin/AdminLayout.jsx';
@@ -67,6 +68,7 @@ const App = () => {
               <Route path="/feedback" element={<MainLayout><FeedbackPage /></MainLayout>} />
               <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
               <Route path="/property/:id" element={<MainLayout><PropertyDetailPage /></MainLayout>} />
+              <Route path="/roommate/:id" element={<MainLayout><RoommateDetailPage /></MainLayout>} />
               <Route path="*" element={<MainLayout><NotFoundPage /></MainLayout>} />
             </Routes>
           </div>

@@ -112,86 +112,79 @@ const ListPropertyPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white py-16 px-6">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full mb-6">
-            <Home className="text-white" size={24} />
-            <span className="text-lg font-semibold">Property Listing</span>
+    <div className="min-h-screen bg-gray-50">
+      {/* Professional Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center mb-6">
+            <div className="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-lg">
+              <Building className="text-blue-600" size={24} />
+              <span className="text-blue-900 font-semibold">Property Listing</span>
+            </div>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            List Your
-            <span className="block bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
-              Dream Property
-            </span>
-          </h1>
-          <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Connect with thousands of verified tenants and find the perfect match for your property
-          </p>
-          <div className="flex flex-wrap justify-center gap-4 text-sm">
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-              <CheckCircle size={16} />
-              <span>Free Listing</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-              <CheckCircle size={16} />
-              <span>Verified Tenants</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-              <CheckCircle size={16} />
-              <span>Quick Approval</span>
+          <div className="text-center">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              List Your Property
+            </h1>
+            <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
+              Connect with verified tenants and showcase your property to thousands of potential renters
+            </p>
+            <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <CheckCircle size={16} className="text-green-600" />
+                <span>Free to List</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle size={16} className="text-green-600" />
+                <span>Verified Tenants</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle size={16} className="text-green-600" />
+                <span>Quick Approval</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Status Messages */}
         {successMessage && (
-          <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-4 rounded-2xl mb-8 flex items-center gap-3 shadow-2xl backdrop-blur-sm">
-            <div className="bg-white/20 p-2 rounded-full">
-              <CheckCircle size={24} />
-            </div>
+          <div className="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg mb-6 flex items-center gap-3">
+            <CheckCircle size={20} className="text-green-600" />
             <div>
-              <div className="font-bold text-lg">Success!</div>
-              <div className="opacity-90">{successMessage}</div>
+              <div className="font-semibold">Success!</div>
+              <div className="text-sm">{successMessage}</div>
             </div>
           </div>
         )}
         
         {errorMessage && (
-          <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-4 rounded-2xl mb-8 flex items-center gap-3 shadow-2xl backdrop-blur-sm">
-            <div className="bg-white/20 p-2 rounded-full">
-              <AlertCircle size={24} />
-            </div>
+          <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg mb-6 flex items-center gap-3">
+            <AlertCircle size={20} className="text-red-600" />
             <div>
-              <div className="font-bold text-lg">Error</div>
-              <div className="opacity-90">{errorMessage}</div>
+              <div className="font-semibold">Error</div>
+              <div className="text-sm">{errorMessage}</div>
             </div>
           </div>
         )}
 
         {/* Main Form */}
-        <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200">
           {/* Form Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-6">
-            <h2 className="text-2xl font-bold flex items-center gap-3">
-              <Building size={28} />
-              Property Details
-            </h2>
-            <p className="text-blue-100 mt-2">Fill in the information about your property</p>
+          <div className="px-8 py-6 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">Property Information</h2>
+            <p className="text-gray-600 mt-1">Please provide detailed information about your property</p>
           </div>
 
           <div className="p-8 space-y-8">
             {/* Property Type Section */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-2xl border border-blue-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Home className="text-blue-600" size={24} />
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Home className="text-gray-600" size={20} />
                 Property Type
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 {[
                   { value: 'apartment', label: 'Apartment' },
                   { value: 'shared_room', label: 'Shared Room' },
@@ -212,13 +205,13 @@ const ListPropertyPage = () => {
                         className="sr-only"
                         required
                       />
-                      <div className={`p-4 rounded-xl text-center transition-all duration-300 border-2 ${
+                      <div className={`p-4 rounded-lg text-center border transition-all ${
                         formData.propertyType === type.value
-                          ? 'border-blue-500 bg-blue-500 text-white shadow-lg transform scale-105'
-                          : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300 hover:shadow-md'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
                       }`}>
-                        <IconComponent size={24} className="mx-auto mb-2" />
-                        <div className="text-sm font-semibold">{type.label}</div>
+                        <IconComponent size={20} className="mx-auto mb-2" />
+                        <div className="text-sm font-medium">{type.label}</div>
                       </div>
                     </label>
                   );
@@ -228,12 +221,12 @@ const ListPropertyPage = () => {
 
             {/* BHK Type - Conditional */}
             {(formData.propertyType === 'apartment' || formData.propertyType === 'house' || formData.propertyType === 'villa') && (
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-2xl border border-green-200">
-                <label className="block text-xl font-bold text-gray-800 mb-4">
-                  <Bed className="inline mr-2 text-green-600" size={24} />
+              <div className="space-y-4">
+                <label className="block text-lg font-semibold text-gray-900">
+                  <Bed className="inline mr-2 text-gray-600" size={20} />
                   BHK Configuration
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                   {['1RK', '1BHK', '2BHK', '3BHK', '4BHK+'].map((bhk) => (
                     <label key={bhk} className="cursor-pointer">
                       <input
@@ -244,10 +237,10 @@ const ListPropertyPage = () => {
                         onChange={handleChange}
                         className="sr-only"
                       />
-                      <div className={`p-4 rounded-xl text-center font-bold transition-all duration-300 border-2 ${
+                      <div className={`p-3 rounded-lg text-center font-medium border transition-all ${
                         formData.bhkType === bhk
-                          ? 'border-green-500 bg-green-500 text-white shadow-lg transform scale-105'
-                          : 'border-gray-200 bg-white text-gray-700 hover:border-green-300 hover:shadow-md'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
                       }`}>
                         {bhk}
                       </div>
@@ -261,148 +254,143 @@ const ListPropertyPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Bedrooms */}
               <div className="space-y-2">
-                <label className="block text-lg font-bold text-gray-800">
-                  <Bed className="inline mr-2 text-blue-600" size={20} />
+                <label className="block text-sm font-medium text-gray-900">
                   Bedrooms *
                 </label>
-                <div className="relative group">
+                <div className="relative">
                   <input
                     type="number"
                     name="bedrooms"
                     value={formData.bedrooms}
                     onChange={handleChange}
                     placeholder="Number of bedrooms"
-                    className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-white text-base focus:ring-4 focus:ring-blue-300 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     min="0"
                     required
                   />
-                  <Bed className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+                  <Bed className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 </div>
               </div>
 
               {/* Bathrooms */}
               <div className="space-y-2">
-                <label className="block text-lg font-bold text-gray-800">
-                  <Bath className="inline mr-2 text-blue-600" size={20} />
+                <label className="block text-sm font-medium text-gray-900">
                   Bathrooms
                 </label>
-                <div className="relative group">
+                <div className="relative">
                   <input
                     type="number"
                     name="bathrooms"
                     value={formData.bathrooms}
                     onChange={handleChange}
                     placeholder="Number of bathrooms"
-                    className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-white text-base focus:ring-4 focus:ring-blue-300 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     min="0"
                   />
-                  <Bath className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+                  <Bath className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 </div>
               </div>
 
               {/* Area */}
               <div className="space-y-2">
-                <label className="block text-lg font-bold text-gray-800">
-                  <Home className="inline mr-2 text-blue-600" size={20} />
+                <label className="block text-sm font-medium text-gray-900">
                   Area (sq.ft.)
                 </label>
-                <div className="relative group">
+                <div className="relative">
                   <input
                     type="number"
                     name="area"
                     value={formData.area}
                     onChange={handleChange}
                     placeholder="Total area in square feet"
-                    className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-white text-base focus:ring-4 focus:ring-blue-300 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     min="1"
                   />
-                  <Home className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+                  <Home className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 </div>
               </div>
 
               {/* Rent */}
               <div className="space-y-2">
-                <label className="block text-lg font-bold text-gray-800">
+                <label className="block text-sm font-medium text-gray-900">
                   Monthly Rent (₹) *
                 </label>
-                <div className="relative group">
+                <div className="relative">
                   <input
                     type="number"
                     name="rent"
                     value={formData.rent}
                     onChange={handleChange}
                     placeholder="Expected monthly rent"
-                    className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-white text-base focus:ring-4 focus:ring-blue-300 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300"
+                    className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     min="1"
                     required
                   />
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
                 </div>
               </div>
 
               {/* Deposit */}
               <div className="space-y-2">
-                <label className="block text-lg font-bold text-gray-800">
+                <label className="block text-sm font-medium text-gray-900">
                   Security Deposit (₹)
                 </label>
-                <div className="relative group">
+                <div className="relative">
                   <input
                     type="number"
                     name="deposit"
                     value={formData.deposit}
                     onChange={handleChange}
                     placeholder="Security deposit amount"
-                    className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-white text-base focus:ring-4 focus:ring-blue-300 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300"
+                    className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     min="0"
                   />
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">₹</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
                 </div>
               </div>
 
               {/* City */}
               <div className="space-y-2">
-                <label className="block text-lg font-bold text-gray-800">
-                  <MapPin className="inline mr-2 text-blue-600" size={20} />
+                <label className="block text-sm font-medium text-gray-900">
                   City *
                 </label>
-                <div className="relative group">
+                <div className="relative">
                   <input
                     type="text"
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
                     placeholder="e.g., Mumbai, Delhi, Pune"
-                    className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-white text-base focus:ring-4 focus:ring-blue-300 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 </div>
               </div>
             </div>
 
             {/* Location */}
             <div className="space-y-2">
-              <label className="block text-lg font-bold text-gray-800">
-                <MapPin className="inline mr-2 text-blue-600" size={20} />
+              <label className="block text-sm font-medium text-gray-900">
                 Specific Location *
               </label>
-              <div className="relative group">
+              <div className="relative">
                 <input
                   type="text"
                   name="location"
                   value={formData.location}
                   onChange={handleChange}
                   placeholder="e.g., Koregaon Park, Andheri West, CP"
-                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-white text-base focus:ring-4 focus:ring-blue-300 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               </div>
             </div>
 
             {/* Title */}
             <div className="space-y-2">
-              <label className="block text-lg font-bold text-gray-800">
+              <label className="block text-sm font-medium text-gray-900">
                 Property Title *
               </label>
               <input
@@ -411,37 +399,37 @@ const ListPropertyPage = () => {
                 value={formData.title}
                 onChange={handleChange}
                 placeholder="e.g., Spacious 2BHK with City View in Prime Location"
-                className="w-full pl-4 pr-4 py-4 border-2 border-gray-200 rounded-xl bg-white text-base focus:ring-4 focus:ring-blue-300 focus:border-blue-500 transition-all duration-300 hover:border-blue-300"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
             </div>
 
             {/* Description */}
             <div className="space-y-2">
-              <label className="block text-lg font-bold text-gray-800">
+              <label className="block text-sm font-medium text-gray-900">
                 Property Description
               </label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                rows="6"
+                rows="5"
                 placeholder="Describe your property in detail... Include nearby landmarks, unique features, house rules, and what makes your property special."
-                className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl bg-white text-base focus:ring-4 focus:ring-blue-300 focus:border-blue-500 transition-all duration-300 hover:border-blue-300 resize-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               ></textarea>
             </div>
 
             {/* Amenities */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Star className="text-purple-600" size={24} />
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Star className="text-gray-600" size={20} />
                 Amenities & Features
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                 {['Furnished', 'AC', 'Parking', 'Gym', 'Security', 'Power Backup', 'Lift', 'Balcony', 'Pet Friendly', 'Wi-Fi'].map(amenity => {
                   const IconComponent = amenityIcons[amenity] || Star;
                   return (
-                    <label key={amenity} className="cursor-pointer group">
+                    <label key={amenity} className="cursor-pointer">
                       <input
                         type="checkbox"
                         name="amenities"
@@ -450,13 +438,13 @@ const ListPropertyPage = () => {
                         onChange={handleChange}
                         className="sr-only"
                       />
-                      <div className={`p-4 rounded-xl text-center transition-all duration-300 border-2 ${
+                      <div className={`p-3 rounded-lg text-center border transition-all ${
                         formData.amenities.includes(amenity)
-                          ? 'border-purple-500 bg-purple-500 text-white shadow-lg transform scale-105'
-                          : 'border-gray-200 bg-white text-gray-700 hover:border-purple-300 hover:shadow-md group-hover:scale-105'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
                       }`}>
-                        <IconComponent size={20} className="mx-auto mb-2" />
-                        <div className="text-sm font-semibold">{amenity}</div>
+                        <IconComponent size={18} className="mx-auto mb-2" />
+                        <div className="text-sm font-medium">{amenity}</div>
                       </div>
                     </label>
                   );
@@ -465,57 +453,47 @@ const ListPropertyPage = () => {
             </div>
 
             {/* Broker Contact */}
-            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-2xl border border-yellow-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Shield className="text-yellow-600" size={24} />
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Shield className="text-gray-600" size={20} />
                 Broker Contact Preference
               </h3>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <label className="flex items-center cursor-pointer bg-white p-4 rounded-xl border-2 border-gray-200 hover:border-yellow-300 transition-all duration-300 flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label className="flex items-start cursor-pointer p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-all">
                   <input
                     type="radio"
                     name="allowBroker"
                     value="yes"
                     checked={formData.allowBroker === 'yes'}
                     onChange={handleChange}
-                    className="sr-only"
+                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                   />
-                  <div className={`w-6 h-6 rounded-full border-2 mr-3 flex items-center justify-center ${
-                    formData.allowBroker === 'yes' ? 'border-yellow-500 bg-yellow-500' : 'border-gray-300'
-                  }`}>
-                    {formData.allowBroker === 'yes' && <div className="w-3 h-3 bg-white rounded-full"></div>}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-800">Yes, allow brokers</div>
-                    <div className="text-sm text-gray-600">Get more inquiries from brokers</div>
+                  <div className="ml-3">
+                    <div className="text-sm font-medium text-gray-900">Allow broker inquiries</div>
+                    <div className="text-sm text-gray-600">Receive inquiries from both brokers and direct tenants</div>
                   </div>
                 </label>
-                <label className="flex items-center cursor-pointer bg-white p-4 rounded-xl border-2 border-gray-200 hover:border-yellow-300 transition-all duration-300 flex-1">
+                <label className="flex items-start cursor-pointer p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-all">
                   <input
                     type="radio"
                     name="allowBroker"
                     value="no"
                     checked={formData.allowBroker === 'no'}
                     onChange={handleChange}
-                    className="sr-only"
+                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                   />
-                  <div className={`w-6 h-6 rounded-full border-2 mr-3 flex items-center justify-center ${
-                    formData.allowBroker === 'no' ? 'border-yellow-500 bg-yellow-500' : 'border-gray-300'
-                  }`}>
-                    {formData.allowBroker === 'no' && <div className="w-3 h-3 bg-white rounded-full"></div>}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-800">No brokers</div>
-                    <div className="text-sm text-gray-600">Direct tenant inquiries only</div>
+                  <div className="ml-3">
+                    <div className="text-sm font-medium text-gray-900">Direct inquiries only</div>
+                    <div className="text-sm text-gray-600">Receive inquiries from tenants directly</div>
                   </div>
                 </label>
               </div>
             </div>
 
             {/* Image Upload */}
-            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-2xl border border-indigo-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Camera className="text-indigo-600" size={24} />
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Camera className="text-gray-600" size={20} />
                 Property Images
               </h3>
               <div className="space-y-4">
@@ -527,12 +505,12 @@ const ListPropertyPage = () => {
                     onChange={handleImageChange}
                     className="sr-only"
                   />
-                  <div className="border-2 border-dashed border-indigo-300 rounded-xl p-8 text-center bg-white hover:border-indigo-400 hover:bg-indigo-50 transition-all duration-300">
-                    <Camera size={48} className="mx-auto text-indigo-400 mb-4" />
-                    <div className="text-lg font-semibold text-gray-800 mb-2">Upload Property Images</div>
-                    <div className="text-gray-600">Drag & drop or click to select images (Max 5MB each)</div>
-                    <div className="mt-4 inline-flex items-center gap-2 bg-indigo-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-600 transition-colors">
-                      <Upload size={20} />
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+                    <Camera size={32} className="mx-auto text-gray-400 mb-4" />
+                    <div className="text-sm font-medium text-gray-900 mb-2">Upload Property Images</div>
+                    <div className="text-sm text-gray-600 mb-4">Drag & drop or click to select images (Max 5MB each)</div>
+                    <div className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                      <Upload size={16} />
                       Choose Images
                     </div>
                   </div>
@@ -541,22 +519,22 @@ const ListPropertyPage = () => {
                 {propertyImages.length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     {propertyImages.map((file, index) => (
-                      <div key={index} className="relative rounded-xl overflow-hidden shadow-lg border-2 border-white aspect-[4/3] group">
+                      <div key={index} className="relative rounded-lg overflow-hidden border border-gray-200 aspect-[4/3] group">
                         <img
                           src={URL.createObjectURL(file)}
                           alt={`Property ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all"></div>
                         <button
                           type="button"
                           onClick={() => removeImage(index)}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-600 hover:scale-110 shadow-lg"
+                          className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-700"
                           title="Remove image"
                         >
-                          <X size={16} />
+                          <X size={14} />
                         </button>
-                        <div className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-1 rounded">
+                        <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
                           Image {index + 1}
                         </div>
                       </div>
@@ -567,32 +545,29 @@ const ListPropertyPage = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-center pt-8">
+            <div className="flex justify-center pt-6">
               <button
                 type="submit"
                 disabled={loading}
-                className={`bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-4 px-12 rounded-2xl transition-all duration-500 shadow-2xl flex items-center gap-3 text-lg hover:from-blue-700 hover:to-purple-700 hover:shadow-3xl transform hover:scale-105 ${
-                  loading ? 'opacity-70 cursor-not-allowed transform-none' : ''
+                className={`bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-colors flex items-center gap-2 ${
+                  loading ? 'opacity-70 cursor-not-allowed' : ''
                 }`}
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                    <span>Publishing Your Property...</span>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Publishing Property...</span>
                   </>
                 ) : (
                   <>
-                    <Upload size={24} />
-                    <span>List My Property</span>
+                    <Upload size={20} />
+                    <span>List Property</span>
                   </>
                 )}
               </button>
             </div>
           </div>
         </form>
-
-        {/* Bottom Spacing */}
-        <div className="h-16"></div>
       </div>
     </div>
   );

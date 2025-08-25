@@ -4,7 +4,7 @@ import HeroSection from '../components/HeroSection';
 import PropertyListingCard from '../components/PropertyListingCard';
 import RoommateListingCard from '../components/RoommateListingCard';
 import { AppContext } from '../context/AppContext';
-import { Loader2, Frown, AlertCircle } from 'lucide-react';
+import { Loader2, AlertTriangle, RefreshCw, Home, Users } from 'lucide-react';
 import axios from 'axios';
 
 const DEFAULT_IMAGE = "https://placehold.co/400x250/E0F7FA/00838F?text=Property";
@@ -138,7 +138,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen bg-gray-50">
       <HeroSection
         initialSearch={searchParams.get('search') || ''}
         activeTab={activeTab}
@@ -147,91 +147,104 @@ const HomePage = () => {
       />
       
       {/* Results Section */}
-      <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 md:px-8 lg:px-12">
-        {/* Section Header */}
-        <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4 tracking-tight">
-            {activeTab === 'find_room' ? '🏠 Featured Properties' : '👥 Featured Roommates'}
-          </h2>
-          <div className="w-20 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 mx-auto rounded-full"></div>
-          <p className="text-gray-600 mt-4 text-sm sm:text-base max-w-2xl mx-auto">
-            {activeTab === 'find_room' 
-              ? 'Discover your next home from our curated selection of properties'
-              : 'Connect with potential roommates in your area'
-            }
-          </p>
-        </div>
-
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center text-gray-600 py-12 sm:py-16 flex flex-col items-center justify-center">
-            <div className="bg-white rounded-2xl shadow-lg p-8 sm:p-12 max-w-md mx-auto">
-              <Loader2 className="w-12 h-12 sm:w-16 sm:h-16 text-emerald-500 mb-6 animate-spin mx-auto" />
-              <p className="text-lg sm:text-xl font-medium mb-2">
-                Loading {activeTab === 'find_room' ? 'properties' : 'roommates'}...
-              </p>
-              <p className="text-gray-500 text-sm sm:text-base">
-                This might take a few seconds
-              </p>
+      <section className="py-12 px-4 sm:px-6 md:px-8 lg:px-12 bg-white">
+        <div className="max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="mb-12">
+            <div className="flex items-center gap-3 mb-4">
+              {activeTab === 'find_room' ? (
+                <Home className="text-indigo-600" size={28} />
+              ) : (
+                <Users className="text-indigo-600" size={28} />
+              )}
+              <h2 className="text-3xl font-bold text-gray-900">
+                {activeTab === 'find_room' ? 'Available Properties' : 'Available Roommates'}
+              </h2>
             </div>
+            <p className="text-gray-600 max-w-2xl">
+              {activeTab === 'find_room' 
+                ? 'Browse through our carefully curated selection of verified properties'
+                : 'Connect with verified individuals looking for roommates in your area'
+              }
+            </p>
           </div>
-        )}
 
-        {/* Error State */}
-        {error && (
-          <div className="max-w-2xl mx-auto mb-8">
-            <div className="bg-red-50 border-l-4 border-red-400 text-red-700 p-4 sm:p-6 rounded-r-xl shadow-md">
-              <div className="flex items-start">
-                <AlertCircle size={24} className="text-red-400 mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold mb-1">Oops! Something went wrong</h3>
-                  <p className="text-sm sm:text-base">{error}</p>
+          {/* Loading State */}
+          {loading && (
+            <div className="text-center py-16">
+              <div className="bg-gray-50 rounded-xl p-12 max-w-md mx-auto border border-gray-200">
+                <Loader2 className="w-12 h-12 text-indigo-600 mb-4 animate-spin mx-auto" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Loading {activeTab === 'find_room' ? 'Properties' : 'Roommates'}
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Please wait while we fetch the latest listings
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="max-w-2xl mx-auto mb-8">
+              <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-xl">
+                <div className="flex items-start">
+                  <AlertTriangle size={24} className="text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold mb-1">Unable to Load Content</h3>
+                    <p className="text-sm">{error}</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Empty State */}
-        {!loading && !error && properties.length === 0 && roommates.length === 0 && (
-          <div className="text-center py-12 sm:py-16">
-            <div className="bg-white rounded-2xl shadow-lg p-8 sm:p-12 max-w-md mx-auto">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Frown size={40} className="text-gray-400" />
+          {/* Empty State */}
+          {!loading && !error && properties.length === 0 && roommates.length === 0 && (
+            <div className="text-center py-16">
+              <div className="bg-gray-50 rounded-xl p-12 max-w-md mx-auto border border-gray-200">
+                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                  {activeTab === 'find_room' ? (
+                    <Home size={32} className="text-gray-400" />
+                  ) : (
+                    <Users size={32} className="text-gray-400" />
+                  )}
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  No {activeTab === 'find_room' ? 'Properties' : 'Roommates'} Available
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Try adjusting your search criteria or check back later for new listings
+                </p>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200 border-none cursor-pointer flex items-center gap-2 mx-auto"
+                >
+                  <RefreshCw size={18} />
+                  Refresh
+                </button>
               </div>
-              <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3">
-                No {activeTab === 'find_room' ? 'properties' : 'roommates'} found
-              </h3>
-              <p className="text-gray-600 text-sm sm:text-base mb-6">
-                Try adjusting your search criteria or check back later for new listings
-              </p>
-              <button 
-                onClick={() => window.location.reload()} 
-                className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-3 rounded-xl font-medium hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 shadow-md hover:shadow-lg"
-              >
-                🔄 Refresh Page
-              </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Properties Grid */}
-        {!loading && !error && properties.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 max-w-7xl mx-auto animate-fade-in-up">
-            {properties.map((property) => (
-              <PropertyListingCard key={property.id} property={property} />
-            ))}
-          </div>
-        )}
+          {/* Properties Grid */}
+          {!loading && !error && properties.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in-up">
+              {properties.map((property) => (
+                <PropertyListingCard key={property.id} property={property} />
+              ))}
+            </div>
+          )}
 
-        {/* Roommates Grid */}
-        {!loading && !error && roommates.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 max-w-7xl mx-auto animate-fade-in-up">
-            {roommates.map((roommate) => (
-              <RoommateListingCard key={roommate.id} roommate={roommate} />
-            ))}
-          </div>
-        )}
+          {/* Roommates Grid */}
+          {!loading && !error && roommates.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in-up">
+              {roommates.map((roommate) => (
+                <RoommateListingCard key={roommate.id} roommate={roommate} />
+              ))}
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );
