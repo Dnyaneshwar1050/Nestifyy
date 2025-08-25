@@ -199,41 +199,39 @@ const updateUser = async (req, res) => {
     // Verify admin status
     const requestingUserId = req.user.id;
     const requestingUser = await User.findById(requestingUserId);
-
+    
     if (!requestingUser || !requestingUser.isAdmin) {
-      return res
-        .status(403)
-        .json({ message: "Only admins can modify user data" });
+      return res.status(403).json({ message: 'Only admins can modify user data' });
     }
-
+    
     const userId = req.params.id;
     const updateData = { ...req.body };
-
+    
     // If password is provided, hash it
     if (updateData.password) {
       const salt = await bcrypt.genSalt(10);
       updateData.password = await bcrypt.hash(updateData.password, salt);
     }
-
+    
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
       { new: true }
-    ).select("-password");
-
+    ).select('-password');
+    
     if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
-
+    
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.error("Error in updateUser:", error);
-
-    if (error.kind === "ObjectId") {
-      return res.status(400).json({ message: "Invalid user ID format" });
+    console.error('Error in updateUser:', error);
+    
+    if (error.kind === 'ObjectId') {
+      return res.status(400).json({ message: 'Invalid user ID format' });
     }
-
-    res.status(500).json({ message: "Server error, please try again later" });
+    
+    res.status(500).json({ message: 'Server error, please try again later' });
   }
 };
 
