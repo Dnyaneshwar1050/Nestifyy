@@ -8,7 +8,7 @@ router.post("/", authMiddleware, createRoomRequest);
 router.get("/all", getAllRoomRequests);
 router.get("/search", authMiddleware, searchRoomRequests);
 router.get("/user", authMiddleware, getUserRoomRequests);
-router.get("/:id", authMiddleware, getRoomRequestById);
+router.get("/:id", getRoomRequestById);
 router.delete("/:id", authMiddleware, deleteRoomRequest);
 router.put("/:id", authMiddleware, updateRoomRequest);
 

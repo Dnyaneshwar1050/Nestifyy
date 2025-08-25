@@ -179,7 +179,7 @@ const getRoomRequestById = async (req, res) => {
     }
 
     const roomRequest = await RoomRequest.findById(id)
-      .populate("user", "name number gender photo")
+      .populate("user", "name phone gender photo")
       .lean();
 
     if (!roomRequest) {
