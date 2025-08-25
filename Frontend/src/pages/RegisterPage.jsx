@@ -16,7 +16,6 @@ const RegisterPage = () => {
     location: "",
     gender: "",
     phone: "",
-    photo: "",
   });
 
   const [photo, setPhoto] = useState(null);
@@ -89,9 +88,6 @@ const RegisterPage = () => {
 
       // Replace with actual API call
       const response = await axios.post('https://nestifyy-my3u.onrender.com/api/user/register', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       });
 
       console.log('Registration successful:', response.data);

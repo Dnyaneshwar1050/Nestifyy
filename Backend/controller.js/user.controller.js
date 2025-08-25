@@ -36,9 +36,15 @@ const registerUser = async (req, res) => {
 
     let photoUrl = "";
     if (req.file) {
-      console.log("Uploading file:", req.file);
+      console.log("File details:", {
+        path: req.file.path,
+        filename: req.file.filename,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+      });
       try {
-        const result = await uploadImage(req.file);
+        const result = await uploadImage(req.file); // Ensure req.file is passed correctly
+        console.log("Cloudinary upload result:", result);
         photoUrl = result.secure_url;
       } catch (error) {
         console.error("Photo upload error:", error);
@@ -46,6 +52,8 @@ const registerUser = async (req, res) => {
           .status(500)
           .json({ message: "Failed to upload photo", error: error.message });
       }
+    } else {
+      console.log("No file uploaded in req.file");
     }
 
     const user = new User({
@@ -56,9 +64,11 @@ const registerUser = async (req, res) => {
       age: Number(age),
       phone,
       location,
-      photo: photoUrl,
+      photo: photoUrl || undefined, // Explicitly set to undefined if empty
       gender: gender || "Other",
     });
+
+    console.log("User data before save:", user);
     await user.save();
 
     res.status(201).json({
