@@ -105,7 +105,18 @@ const updateProperty = async (req, res) => {
       return res.status(404).json({ message: "Property not found" });
     }
 
-    if (propertyToUpdate.owner.toString() !== authenticatedUserId.toString()) {
+    // Allow update by owner or admin
+    let isAdminUser = false;
+    try {
+      const { User } = await import("../models/user.model.js");
+      const requestingUser = await User.findById(authenticatedUserId);
+      isAdminUser = !!(requestingUser && requestingUser.isAdmin);
+    } catch (_) {}
+
+    if (
+      propertyToUpdate.owner.toString() !== authenticatedUserId.toString() &&
+      !isAdminUser
+    ) {
       return res.status(403).json({ message: "Unauthorized to update this property" });
     }
 
@@ -145,7 +156,10 @@ const updateProperty = async (req, res) => {
     delete updates.createdAt;
     delete updates.updatedAt;
     delete updates.__v;
-    delete updates.status;
+    // Only allow status change by admin
+    if (!isAdminUser) {
+      delete updates.status;
+    }
     delete updates.existingImageUrls;  // Clean up
     delete updates.imageUrls;  // Avoid duplication
 
@@ -192,7 +206,18 @@ const deleteProperty = async (req, res) => {
       return res.status(404).json({ message: "Property not found" });
     }
 
-    if (property.owner.toString() !== authenticatedUserId.toString()) {
+    // Allow delete by owner or admin
+    let isAdminUser = false;
+    try {
+      const { User } = await import("../models/user.model.js");
+      const requestingUser = await User.findById(authenticatedUserId);
+      isAdminUser = !!(requestingUser && requestingUser.isAdmin);
+    } catch (_) {}
+
+    if (
+      property.owner.toString() !== authenticatedUserId.toString() &&
+      !isAdminUser
+    ) {
       return res
         .status(403)
         .json({ message: "Unauthorized to delete this property" });
@@ -218,12 +243,56 @@ const deleteProperty = async (req, res) => {
 
 const getAllProperties = async (req, res) => {
   try {
-    const properties = await Property.find().populate("owner", "name email phone");
+    const {
+      page = 1,
+      limit = 10,
+      search = "",
+      propertyType = "",
+      status = "",
+    } = req.query;
+
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.max(parseInt(limit, 10) || 10, 1);
+
+    const filter = {};
+
+    if (search && typeof search === 'string' && search.trim()) {
+      const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      filter.$or = [
+        { title: { $regex: escaped, $options: 'i' } },
+        { city: { $regex: escaped, $options: 'i' } },
+        { location: { $regex: escaped, $options: 'i' } },
+      ];
+    }
+
+    if (propertyType && typeof propertyType === 'string' && propertyType.trim()) {
+      filter.propertyType = { $regex: `^${propertyType.trim()}$`, $options: 'i' };
+    }
+
+    if (status && typeof status === 'string' && status.trim()) {
+      filter.status = { $regex: `^${status.trim()}$`, $options: 'i' };
+    }
+
+    const total = await Property.countDocuments(filter);
+    const properties = await Property.find(filter)
+      .populate("owner", "name email phone")
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .sort({ createdAt: -1 });
+
     const sanitizedProperties = properties.map((property) => ({
       ...property.toObject(),
       imageUrls: Array.isArray(property.imageUrls) ? property.imageUrls : [],
     }));
-    res.status(200).json({ properties: sanitizedProperties });
+    res.status(200).json({
+      properties: sanitizedProperties,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        pages: Math.max(Math.ceil(total / limitNum), 1),
+      },
+    });
   } catch (error) {
     console.error("Error fetching properties:", error);
     res.status(500).json({ message: "Failed to fetch properties" });

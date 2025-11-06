@@ -58,15 +58,15 @@ const DashboardPage = () => {
         };
 
         // Fetch user
-        const userRes = await axios.get("https://nestifyy-my3u.onrender.com/api/user/profile", config);
+        const userRes = await axios.get("http://localhost:8000/api/user/profile", config);
         setUser(userRes.data);
 
         // Fetch properties
-        const propsRes = await axios.get("https://nestifyy-my3u.onrender.com/api/property/my-properties", config);
+        const propsRes = await axios.get("http://localhost:8000/api/property/my-properties", config);
         setMyProperties(propsRes.data.properties || []);
 
         // Fetch room requests
-        const reqsRes = await axios.get("https://nestifyy-my3u.onrender.com/api/room-request/user", config);
+        const reqsRes = await axios.get("http://localhost:8000/api/room-request/user", config);
         setMyRoomRequests(reqsRes.data || []);
 
         trackInteraction("data_fetch", "dashboard_data_fetch_success");
@@ -90,9 +90,9 @@ const DashboardPage = () => {
       },
     };
     try {
-      const propsRes = await axios.get("https://nestifyy-my3u.onrender.com/api/property/my-properties", config);
+      const propsRes = await axios.get("http://localhost:8000/api/property/my-properties", config);
       setMyProperties(propsRes.data.properties || []);
-      const reqsRes = await axios.get("https://nestifyy-my3u.onrender.com/api/room-request/user", config);
+      const reqsRes = await axios.get("http://localhost:8000/api/room-request/user", config);
       setMyRoomRequests(reqsRes.data || []);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to refetch data");
@@ -117,7 +117,7 @@ const DashboardPage = () => {
         throw new Error("Budget and location are required");
       }
       await axios.post(
-        "https://nestifyy-my3u.onrender.com/api/room-request",
+        "http://localhost:8000/api/room-request",
         { budget, location },
         {
           headers: {
@@ -142,7 +142,7 @@ const DashboardPage = () => {
   const handleDeleteRoomRequest = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`https://nestifyy-my3u.onrender.com/api/room-request/${id}`, {
+      await axios.delete(`http://localhost:8000/api/room-request/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -160,7 +160,7 @@ const DashboardPage = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `https://nestifyy-my3u.onrender.com/api/room-request/${editingRoomRequest._id}`,
+        `http://localhost:8000/api/room-request/${editingRoomRequest._id}`,
         editingRoomRequest,
         {
           headers: {
@@ -182,7 +182,7 @@ const DashboardPage = () => {
   const handleDeleteProperty = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`https://nestifyy-my3u.onrender.com/api/property/${id}`, {
+      await axios.delete(`http://localhost:8000/api/property/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -228,7 +228,7 @@ const DashboardPage = () => {
       });
 
       await axios.put(
-        `https://nestifyy-my3u.onrender.com/api/property/${editingProperty._id}`,
+        `http://localhost:8000/api/property/${editingProperty._id}`,
         data,
         {
           headers: {

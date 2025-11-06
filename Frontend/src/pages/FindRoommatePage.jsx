@@ -32,7 +32,7 @@ const FindRoommatePage = () => {
     setLoading(true);
     setError("");
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "https://nestifyy-my3u.onrender.com";
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
       const response = await fetch(`${apiUrl}/api/room-request/all`, {
         method: "GET",
         headers: {
@@ -87,7 +87,7 @@ const FindRoommatePage = () => {
     setFiltersApplied(true);
     setLoading(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "https://nestifyy-my3u.onrender.com";
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
       const response = await fetch(`${apiUrl}/api/room-request/all`, {
         method: "GET",
         headers: {

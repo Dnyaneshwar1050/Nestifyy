@@ -38,7 +38,7 @@ const FeedbackPage = () => {
 
       console.log('Feedback Submitted:', formData);
       // In a real application, you'd send this to your backend
-      // const response = await fetch('https://nestifyy-my3u.onrender.com/api/feedback', { // Placeholder URL
+      // const response = await fetch('http://localhost:8000/api/feedback', { // Placeholder URL
       //   method: 'POST',
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(formData),

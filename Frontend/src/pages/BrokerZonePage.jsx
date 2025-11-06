@@ -40,19 +40,19 @@ const BrokerZonePage = () => {
       }
 
       // Fetch subscription status
-      const subscriptionResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/subscription/status', {
+      const subscriptionResponse = await axios.get('http://localhost:8000/api/subscription/status', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSubscriptionStatus(subscriptionResponse.data.status || 'inactive');
 
       // Fetch leads
-      // const leadsResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/room-request/leads', {
+      // const leadsResponse = await axios.get('http://localhost:8000/api/room-request/leads', {
       //   headers: { Authorization: `Bearer ${token}` },
       // });
       // setLeads(leadsResponse.data.leads || []);
 
       // Fetch properties
-      const propertiesResponse = await axios.get('https://nestifyy-my3u.onrender.com/api/property/my-properties', {
+      const propertiesResponse = await axios.get('http://localhost:8000/api/property/my-properties', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProperties(propertiesResponse.data.properties || []);
@@ -74,7 +74,7 @@ const BrokerZonePage = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        'https://nestifyy-my3u.onrender.com/api/subscription/purchase',
+        'http://localhost:8000/api/subscription/purchase',
         { plan },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -115,7 +115,7 @@ const BrokerZonePage = () => {
     trackInteraction('click', `broker_remove_property_confirm_${propertyToRemoveId}`);
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`https://nestifyy-my3u.onrender.com/api/property/${propertyToRemoveId}`, {
+      await axios.delete(`http://localhost:8000/api/property/${propertyToRemoveId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProperties((prev) => prev.filter((p) => p._id !== propertyToRemoveId));

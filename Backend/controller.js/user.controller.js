@@ -290,12 +290,53 @@ const getAllUsers = async (req, res) => {
         .json({ message: "Only admins can view all users" });
     }
 
-    const users = await User.find().select("-password");
+    // Filters and pagination
+    const {
+      page = 1,
+      limit = 10,
+      query = "",
+      role = "",
+      isAdmin,
+    } = req.query;
+
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.max(parseInt(limit, 10) || 10, 1);
+
+    const filter = {};
+
+    if (query && typeof query === "string" && query.trim()) {
+      const escaped = query.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      filter.$or = [
+        { name: { $regex: escaped, $options: "i" } },
+        { email: { $regex: escaped, $options: "i" } },
+      ];
+    }
+
+    if (role && typeof role === "string" && role.trim()) {
+      filter.role = role.trim();
+    }
+
+    if (typeof isAdmin !== 'undefined' && isAdmin !== "") {
+      // Frontend sends 'true' | 'false' via mapping
+      if (isAdmin === 'true' || isAdmin === true) filter.isAdmin = true;
+      if (isAdmin === 'false' || isAdmin === false) filter.isAdmin = false;
+    }
+
+    const total = await User.countDocuments(filter);
+    const users = await User.find(filter)
+      .select("-password")
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       users,
-      count: users.length,
-      message: "Users retrieved successfully",
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        pages: Math.max(Math.ceil(total / limitNum), 1),
+      },
     });
   } catch (error) {
     console.error("Error in getAllUsers:", error);

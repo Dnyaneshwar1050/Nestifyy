@@ -63,8 +63,8 @@ const ProfilePage = () => {
         }
 
         const apiUrl = id
-          ? `https://nestifyy-my3u.onrender.com/api/user/${id}`
-          : `https://nestifyy-my3u.onrender.com/api/user/profile`;
+          ? `http://localhost:8000/api/user/${id}`
+          : `http://localhost:8000/api/user/profile`;
         const response = await axios.get(apiUrl, {
           headers: {
             Authorization: token ? `Bearer ${token}` : undefined,
@@ -187,7 +187,7 @@ const ProfilePage = () => {
       }
 
       const response = await axios.put(
-        `https://nestifyy-my3u.onrender.com/api/user/profile`,
+        `http://localhost:8000/api/user/profile`,
         formData,
         {
           headers: {
@@ -206,7 +206,7 @@ const ProfilePage = () => {
       }
       setPreviewUrl(
         response.data.user.photo
-          ? `https://nestifyy-my3u.onrender.com/${response.data.user.photo}`
+          ? `http://localhost:8000/${response.data.user.photo}`
           : ""
       );
       setSelectedFile(null);
@@ -239,7 +239,7 @@ const ProfilePage = () => {
       URL.revokeObjectURL(previewUrl);
     }
     setPreviewUrl(
-      user?.photo ? `https://nestifyy-my3u.onrender.com/${user.photo}` : ""
+      user?.photo ? `http://localhost:8000/${user.photo}` : ""
     );
     setSelectedFile(null);
     trackInteraction("click", "profile_cancel_edit");
@@ -408,7 +408,7 @@ const ProfilePage = () => {
                       previewUrl ||
                       (user.photo && user.photo.startsWith('http')
                         ? user.photo
-                        : `https://nestifyy-my3u.onrender.com/${user.photo}`) ||
+                        : `http://localhost:8000/${user.photo}`) ||
                       `https://ui-avatars.com/api/?name=${user.name}&size=96&background=F8FAFC&color=475569`
                     }
                     alt="Profile"

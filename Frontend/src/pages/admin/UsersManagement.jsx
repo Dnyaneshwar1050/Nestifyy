@@ -19,7 +19,9 @@ const UsersManagement = () => {
     role: '',
     location: '',
     isAdmin: false,
-    password: ''
+    password: '',
+    phone: '',
+    age: ''
   });
   const [formErrors, setFormErrors] = useState({});
   const [processingAction, setProcessingAction] = useState(false);
@@ -29,7 +31,7 @@ const UsersManagement = () => {
     isAdmin: ''
   });
 
-  const API_URL = 'https://nestifyy-my3u.onrender.com/api';
+  const API_URL = 'http://localhost:8000/api';
 
   useEffect(() => {
     fetchUsers();
@@ -90,6 +92,11 @@ const UsersManagement = () => {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'Invalid email format';
     if (!selectedUser && !formData.password) errors.password = 'Password is required';
     if (!formData.role) errors.role = 'Role is required';
+    // Backend requires E.164 phone format and age
+    if (!formData.phone) errors.phone = 'Phone is required';
+    else if (!/^\+\d{10,15}$/.test(formData.phone)) errors.phone = 'Use E.164 format (e.g., +919876543210)';
+    if (formData.age === '' || formData.age === null) errors.age = 'Age is required';
+    else if (Number.isNaN(Number(formData.age)) || Number(formData.age) <= 0) errors.age = 'Enter a valid age';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -113,6 +120,11 @@ const UsersManagement = () => {
     setActionSuccess('');
     const token = localStorage.getItem('token');
 
+    const payload = {
+      ...formData,
+      age: formData.age === '' ? '' : Number(formData.age),
+      isAdmin: !!formData.isAdmin,
+    };
     const response = await fetch(
       selectedUser ? `${API_URL}/user/${selectedUser._id}` : `${API_URL}/user/register`,
       {
@@ -121,7 +133,7 @@ const UsersManagement = () => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       }
     );
 
@@ -183,6 +195,7 @@ const UsersManagement = () => {
       isAdmin: user.isAdmin || false,
       password: '',
       phone: user.phone || '',
+      age: typeof user.age !== 'undefined' && user.age !== null ? String(user.age) : ''
     });
     setShowModal(true);
     trackInteraction('click', 'edit_user');
@@ -262,7 +275,7 @@ const UsersManagement = () => {
                 <option value="broker">Broker</option>
               </select>
             </div>
-            <div>
+            {/* <div>
               <label htmlFor="adminFilter" className="block text-sm font-semibold text-gray-700 mb-2">
                 Filter by Admin
               </label>
@@ -276,7 +289,7 @@ const UsersManagement = () => {
                 <option value="admin">Admin</option>
                 <option value="non-admin">Non-Admin</option>
               </select>
-            </div>
+            </div> */}
           </div>
 
           {/* Add User Button */}
@@ -294,8 +307,40 @@ const UsersManagement = () => {
           </button>
         </div>
 
-        {/* Users Table */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+        {/* Users List - Mobile Cards (shown on small screens) */}
+        <div className="block md:hidden space-y-3">
+          {users.map((user) => (
+            <div key={user._id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-r from-violet-400 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="ml-3">
+                    <p className="font-semibold text-gray-900">{user.name}</p>
+                    <p className="text-xs text-gray-600">{user.email}</p>
+                  </div>
+                </div>
+                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${user.role === 'broker' ? 'bg-orange-100 text-orange-800' : 'bg-slate-100 text-slate-800'}`}>
+                  {user.role}
+                </span>
+              </div>
+              <div className="mt-3 text-xs text-gray-600">
+                <p><span className="font-semibold text-gray-700">Location:</span> {user.location || 'N/A'}</p>
+                <p className="mt-1 flex items-center gap-2">
+                  {user.isAdmin ? (<><Shield className="h-4 w-4 text-emerald-600" /><span className="text-emerald-700 font-medium">Admin</span></>) : (<><ShieldOff className="h-4 w-4 text-gray-400" /><span>User</span></>)}
+                </p>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button onClick={() => handleEdit(user)} className="w-full px-3 py-2 text-amber-700 bg-amber-50 border border-amber-200 rounded-lg text-sm font-medium">Edit</button>
+                <button onClick={() => handleDelete(user._id)} className="w-full px-3 py-2 text-red-700 bg-red-50 border border-red-200 rounded-lg text-sm font-medium">Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Users Table - Desktop */}
+        <div className="hidden md:block bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
@@ -325,42 +370,22 @@ const UsersManagement = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
-                        user.role === 'broker' ? 'bg-orange-100 text-orange-800' : 'bg-slate-100 text-slate-800'
-                      }`}>
+                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${user.role === 'broker' ? 'bg-orange-100 text-orange-800' : 'bg-slate-100 text-slate-800'}`}>
                         {user.role}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.location || 'N/A'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center">
-                        {user.isAdmin ? (
-                          <>
-                            <Shield className="h-5 w-5 text-emerald-600 mr-2" />
-                            <span className="text-emerald-700 font-medium">Admin</span>
-                          </>
-                        ) : (
-                          <>
-                            <ShieldOff className="h-5 w-5 text-gray-400 mr-2" />
-                            <span className="text-gray-500">User</span>
-                          </>
-                        )}
+                        {user.isAdmin ? (<><Shield className="h-5 w-5 text-emerald-600 mr-2" /><span className="text-emerald-700 font-medium">Admin</span></>) : (<><ShieldOff className="h-5 w-5 text-gray-400 mr-2" /><span className="text-gray-500">User</span></>)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-3">
-                        <button
-                          onClick={() => handleEdit(user)}
-                          className="text-amber-600 hover:text-amber-800 p-2 hover:bg-amber-50 rounded-lg transition-colors"
-                          title="Edit User"
-                        >
+                        <button onClick={() => handleEdit(user)} className="text-amber-600 hover:text-amber-800 p-2 hover:bg-amber-50 rounded-lg transition-colors" title="Edit User">
                           <Edit className="h-4 w-4" />
                         </button>
-                        <button
-                          onClick={() => handleDelete(user._id)}
-                          className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete User"
-                        >
+                        <button onClick={() => handleDelete(user._id)} className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Delete User">
                           <Trash className="h-4 w-4" />
                         </button>
                       </div>
@@ -373,22 +398,12 @@ const UsersManagement = () => {
 
           {/* Pagination */}
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-2"
-            >
+            <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-2">
               <ChevronLeft className="h-4 w-4" />
               Previous
             </button>
-            <span className="text-sm text-gray-600 font-medium">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-2"
-            >
+            <span className="text-sm text-gray-600 font-medium">Page {currentPage} of {totalPages}</span>
+            <button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-2">
               Next
               <ChevronRight className="h-4 w-4" />
             </button>
