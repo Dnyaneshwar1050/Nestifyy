@@ -27,7 +27,7 @@ const RoommateDetailPage = () => {
     try {
       setLoading(true);
       setError(null);
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const apiUrl = import.meta.env.VITE_API_URL || "https://nestifyy-my3u.onrender.com";
       const response = await fetch(`${apiUrl}/api/room-request/${id}`, {
         method: 'GET',
         headers: {

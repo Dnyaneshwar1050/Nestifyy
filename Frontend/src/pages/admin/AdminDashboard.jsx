@@ -15,7 +15,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const API_URL = 'http://localhost:8000/api';
+  const API_URL = 'https://nestifyy-my3u.onrender.com/api';
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Unknown date';

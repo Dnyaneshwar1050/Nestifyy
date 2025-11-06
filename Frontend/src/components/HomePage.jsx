@@ -32,7 +32,7 @@ const HomePage = () => {
     try {
       setLoading(true);
       setError(null);
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const apiUrl = import.meta.env.VITE_API_URL || "https://nestifyy-my3u.onrender.com";
       const url = query
         ? `${apiUrl}/api/property/search?search=${encodeURIComponent(query)}`
         : `${apiUrl}/api/property/all`;
@@ -82,7 +82,7 @@ const HomePage = () => {
     try {
       setLoading(true);
       setError(null);
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const apiUrl = import.meta.env.VITE_API_URL || "https://nestifyy-my3u.onrender.com";
       const url = query
         ? `${apiUrl}/api/room-request/search?search=${encodeURIComponent(query)}`
         : `${apiUrl}/api/room-request/all`;

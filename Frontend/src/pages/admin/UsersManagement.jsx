@@ -31,7 +31,7 @@ const UsersManagement = () => {
     isAdmin: ''
   });
 
-  const API_URL = 'http://localhost:8000/api';
+  const API_URL = 'https://nestifyy-my3u.onrender.com/api';
 
   useEffect(() => {
     fetchUsers();
